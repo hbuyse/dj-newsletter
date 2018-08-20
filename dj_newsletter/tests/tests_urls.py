@@ -39,20 +39,10 @@ class TestUrlsPost(TestCase):
 class TestUrlsComment(TestCase):
     """Tests the urls for the dj-newsletter."""
 
-    def test_post_list_comments_url(self):
-        """Test the URL of the listing of posts."""
-        url = reverse('dj_newsletter:post-comments-list', kwargs={'pk': 1})
-        self.assertEqual(url, "/1/comments")
-
     def test_post_comment_create_url(self):
         """Test the URL that adds a comment to a specific post."""
         url = reverse('dj_newsletter:post-comment-create', kwargs={'pk': 1})
         self.assertEqual(url, '/1/comments/create')
-
-    def test_post_comment_detail_url(self):
-        """Test the URL of the listing of posts."""
-        url = reverse('dj_newsletter:post-comment-detail', kwargs={'pk': 1})
-        self.assertEqual(url, '/comments/1')
 
     def test_post_comment_update_url(self):
         """Test the URL of the listing of posts."""

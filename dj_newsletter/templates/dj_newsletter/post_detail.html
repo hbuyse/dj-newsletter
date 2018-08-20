@@ -2,3 +2,22 @@
 
 <p>{{ object.summary }}</p>
 <p>{{ object.text_md|safe }}</p>
+
+
+
+{% for comment in post.get_comments %}
+  {% if forloop.first %}
+    <h3 class="mt-4">{{ post.get_comments.count }} comment{% if post.get_comments.count >= 2 %}s{% endif %}</h3>
+  {% endif %}
+    <div class="card mb-2">
+      <div class="card-header">
+          <div class="float-left">{{ comment.author.get_full_name }}</div>
+          <div class="float-right">{{ comment.created|date:"d/m/Y H:G" }}</div>
+      </div>
+      <div class="card-body">
+        <p class="card-text">{{ comment.text|safe }}</p>
+      </div>
+    </div>
+{% empty %}
+<h3 class="mt-4">No comment</h3>
+{% endfor %}

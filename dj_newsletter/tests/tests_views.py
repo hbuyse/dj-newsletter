@@ -3,7 +3,7 @@
 
 """Tests the views."""
 
-from dj_newsletter.models import Post
+from dj_newsletter.models import Post, Comment
 
 from django.contrib.auth.models import Permission, User
 from django.test import TestCase
@@ -128,11 +128,6 @@ class TestPostUpdateView(TestCase):
             'text': "## Toto"
         }
         self.post = Post.objects.create(**self.dict)
-        pass
-
-    def teardown_method(self):
-        """Tests."""
-        pass
 
     def test_posts_update_view_get_as_anonymous(self):
         """Tests."""
@@ -262,3 +257,74 @@ class TestPostDeleteView(TestCase):
         self.assertEqual(Post.objects.count(), 0)
         self.assertEqual(r.status_code, 302)
         self.assertEqual(r.url, reverse('dj_newsletter:posts-list'))
+
+
+class TestCommentCreateView(TestCase):
+    """Tests."""
+
+    def setUp(self):
+        """Tests."""
+        self.user = User.objects.create_user(username="author", password="author")
+
+        self.dict = {
+            'title': "My Title",
+            'author': self.user,
+            'text': "## Toto"
+        }
+        self.post = Post.objects.create(title="My Title", author=self.user, text="## Toto")
+        self.dict = {
+            'text': "Hello World"
+        }
+
+    def test_comments_create_view_get_as_anonymous(self):
+        """Tests."""
+        r = self.client.get(reverse('dj_newsletter:post-comment-create', kwargs={'pk': self.post.id}))
+        self.assertEqual(r.status_code, 302)
+        self.assertIn('?next=/{}/comments/create'.format(self.post.id), r.url)
+
+    def test_comments_create_view_comment_as_anonymous(self):
+        """Tests."""
+        r = self.client.post(reverse('dj_newsletter:post-comment-create', kwargs={'pk': self.post.id}), self.dict)
+        self.assertEqual(r.status_code, 302)
+        self.assertIn('?next=/{}/comments/create'.format(self.post.id), r.url)
+
+    def test_comments_create_view_get_as_logged_with_wrong_permissions(self):
+        """Tests."""
+        self.assertTrue(self.user.is_active)
+        self.assertTrue(self.client.login(username="author", password="author"))
+
+        r = self.client.get(reverse('dj_newsletter:post-comment-create', kwargs={'pk': self.post.id}))
+        self.assertEqual(r.status_code, 302)
+        self.assertIn('?next=/{}/comments/create'.format(self.post.id), r.url)
+
+    def test_comments_create_view_comment_as_logged_with_wrong_permissions(self):
+        """Tests."""
+        self.assertTrue(self.user.is_active)
+        self.assertTrue(self.client.login(username="author", password="author"))
+
+        r = self.client.post(reverse('dj_newsletter:post-comment-create', kwargs={'pk': self.post.id}), self.dict)
+        self.assertEqual(r.status_code, 302)
+        self.assertIn('?next=/{}/comments/create'.format(self.post.id), r.url)
+
+    def test_comments_create_view_get_as_logged_with_right_permissions(self):
+        """Tests."""
+        self.assertTrue(self.user.is_active)
+        self.assertTrue(self.client.login(username="author", password="author"))
+        self.assertFalse(self.user.has_perm('dj_newsletter.add_Comment'))
+
+        self.user.user_permissions.add(Permission.objects.get(name='Can add comment'))
+        r = self.client.get(reverse('dj_newsletter:post-comment-create', kwargs={'pk': self.post.id}))
+        self.assertEqual(r.status_code, 200)
+
+    def test_comments_create_view_comment_as_logged_with_right_permissions(self):
+        """Tests."""
+        self.assertTrue(self.user.is_active)
+        self.assertTrue(self.client.login(username="author", password="author"))
+        self.assertFalse(self.user.has_perm('dj_newsletter.add_Comment'))
+
+        self.user.user_permissions.add(Permission.objects.get(name='Can add comment'))
+        r = self.client.post(reverse('dj_newsletter:post-comment-create', kwargs={'pk': self.post.id}), data=self.dict)
+        p = Comment.objects.last()
+        self.assertEqual(p.text, "Hello World")
+        self.assertEqual(r.status_code, 302)
+        self.assertEqual(r.url, reverse('dj_newsletter:post-detail', kwargs={'pk': p.id}))
