@@ -419,3 +419,91 @@ class TestCommentUpdateView(TestCase):
         self.assertEqual(r.status_code, 302)
         self.assertIn('post_pk', self.client.session)
         self.assertEqual(r.url, reverse('dj_newsletter:post-detail', kwargs={'pk': self.post.id}))
+
+
+class TestCommentDeleteView(TestCase):
+    """Tests."""
+
+    def setUp(self):
+        """Tests."""
+        self.user = User.objects.create_user(username="author", password="author")
+        self.post = Post.objects.create(title="My Title", author=self.user, text="## Toto")
+        self.dict = {
+            'post': self.post,
+            'author': self.user,
+            'text': "Hello World"
+        }
+        self.comment = Comment.objects.create(**self.dict)
+
+    def test_posts_delete_view_get_as_anonymous(self):
+        """Tests."""
+        r = self.client.get(reverse('dj_newsletter:post-comment-delete', kwargs={'pk': self.comment.id}))
+        self.assertEqual(r.status_code, 302)
+        self.assertIn('?next=/comments/{}/delete'.format(self.post.id), r.url)
+
+    def test_posts_delete_view_post_as_anonymous(self):
+        """Tests."""
+        r = self.client.post(reverse('dj_newsletter:post-comment-delete', kwargs={'pk': self.comment.id}), self.dict)
+        self.assertEqual(r.status_code, 302)
+        self.assertIn('?next=/comments/{}/delete'.format(self.post.id), r.url)
+
+    def test_posts_delete_view_get_as_logged_with_wrong_permissions(self):
+        """Tests."""
+        self.assertTrue(self.user.is_active)
+        self.assertTrue(self.client.login(username="author", password="author"))
+
+        r = self.client.get(reverse('dj_newsletter:post-comment-delete', kwargs={'pk': self.comment.id}))
+        self.assertEqual(r.status_code, 302)
+        self.assertIn('?next=/comments/{}/delete'.format(self.post.id), r.url)
+
+    def test_posts_delete_view_post_as_logged_with_wrong_permissions(self):
+        """Tests."""
+        self.assertTrue(self.user.is_active)
+        self.assertTrue(self.client.login(username="author", password="author"))
+
+        r = self.client.post(reverse('dj_newsletter:post-comment-delete', kwargs={'pk': self.comment.id}), self.dict)
+        self.assertEqual(r.status_code, 302)
+        self.assertIn('?next=/comments/{}/delete'.format(self.post.id), r.url)
+
+    def test_posts_delete_view_get_as_logged_with_right_permissions(self):
+        """Tests."""
+        self.assertTrue(self.user.is_active)
+        self.assertTrue(self.client.login(username="author", password="author"))
+        self.assertFalse(self.user.has_perm('dj_newsletter.delete_post'))
+
+        self.user.user_permissions.add(Permission.objects.get(name='Can delete comment'))
+        r = self.client.get(reverse('dj_newsletter:post-comment-delete', kwargs={'pk': self.comment.id}))
+        self.assertEqual(r.status_code, 200)
+        self.assertIn("<h1 class=\"float-left\">{}</h1>".format(self.comment), str(r.content))
+        self.assertIn("<p>Do you really want to delete that comment?</p>", str(r.content))
+
+    def test_posts_delete_view_post_as_logged_with_right_permissions_no_session_data(self):
+        """Tests."""
+        self.assertTrue(self.user.is_active)
+        self.assertTrue(self.client.login(username="author", password="author"))
+        self.assertFalse(self.user.has_perm('dj_newsletter.delete_post'))
+
+        self.user.user_permissions.add(Permission.objects.get(name='Can delete comment'))
+        self.assertEqual(Comment.objects.count(), 1)
+        r = self.client.post(reverse('dj_newsletter:post-comment-delete', kwargs={'pk': self.comment.id}))
+        self.assertEqual(Comment.objects.count(), 0)
+        self.assertEqual(r.status_code, 302)
+        self.assertEqual(r.url, reverse('dj_newsletter:posts-list'))
+
+    def test_posts_delete_view_post_as_logged_with_right_permissions_with_session_data(self):
+        """Tests."""
+        self.assertTrue(self.user.is_active)
+        self.assertTrue(self.client.login(username="author", password="author"))
+        self.assertFalse(self.user.has_perm('dj_newsletter.change_post'))
+
+        self.user.user_permissions.add(Permission.objects.get(name='Can delete comment'))
+        self.assertEqual(Comment.objects.count(), 1)
+        session = self.client.session
+        session['post_pk'] = str(self.post.id)
+        session.save()
+        r = self.client.post(reverse('dj_newsletter:post-comment-delete',
+                                     kwargs={'pk': self.comment.id}), data=self.dict)
+        self.assertEqual(Comment.objects.count(), 0)
+        self.assertEqual(r.status_code, 302)
+        self.assertIn('post_pk', self.client.session)
+        self.assertEqual(r.url, reverse('dj_newsletter:post-detail', kwargs={'pk': self.post.id}))
