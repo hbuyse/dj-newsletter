@@ -35,8 +35,13 @@ class PostCreateView(PermissionRequiredMixin, CreateView):
     """Create a post."""
 
     model = Post
-    fields = '__all__'
+    fields = ['title', 'text']
     permission_required = 'dj_newsletter.add_post'
+
+    def form_valid(self, form):
+        """Validate the form."""
+        form.instance.author = self.request.user
+        return super().form_valid(form)
 
     def get_success_url(self):
         """Get the URL after the success."""
@@ -47,7 +52,7 @@ class PostUpdateView(PermissionRequiredMixin, UpdateView):
     """Update a post."""
 
     model = Post
-    fields = '__all__'
+    fields = ['title', 'text']
     permission_required = 'dj_newsletter.change_post'
 
     def get_success_url(self):

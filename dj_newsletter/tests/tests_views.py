@@ -5,20 +5,17 @@
 
 from dj_newsletter.models import Post
 
-from django.conf import settings
 from django.contrib.auth.models import Permission, User
 from django.test import TestCase
 from django.urls import reverse
 
-import os.path
-
 
 class TestPostListView(TestCase):
-    """Tests."""
+    """Tests ListView for Post."""
 
     def setUp(self):
         """Tests."""
-        self.user = User.objects.create_user(username="username", password="password")
+        self.user = User.objects.create_user(username="author", password="author")
 
     def test_posts_list_view_empty(self):
         """Tests."""
@@ -34,256 +31,234 @@ class TestPostListView(TestCase):
         self.assertIn("Toto", str(r.content))
 
 
-# class TestPostDetailView(TestCase):
-#     """Tests."""
+class TestPostDetailView(TestCase):
+    """Tests DetailView for Post."""
 
-#     def test_posts_detail_view_not_existing(self):
-#         """Tests."""
-#         r = self.client.get(reverse('dj_newsletter:post-detail', kwargs={'pk': 1}))
-#         self.assertEqual(r.status_code, 404)
+    def setUp(self):
+        """Tests."""
+        self.user = User.objects.create_user(username="author", password="author")
 
-#     def test_posts_detail_view(self):
-#         """Tests."""
-#         Post.objects.create(name="Toto")
-#         r = self.client.get(reverse('dj_newsletter:post-detail', kwargs={'pk': 1}))
-#         self.assertEqual(r.status_code, 200)
-#         self.assertIn("Toto", str(r.content))
+    def test_posts_detail_view_not_existing(self):
+        """Tests."""
+        r = self.client.get(reverse('dj_newsletter:post-detail', kwargs={'pk': 1}))
+        self.assertEqual(r.status_code, 404)
 
-
-# class TestPostCreateView(TestCase):
-#     """Tests."""
-
-#     def setUp(self):
-#         """Tests."""
-#         self.user = User.objects.create_user(username="username", password="password")
-#         self.dict = {
-#             'name': 'Toto',
-#             'summary': 'summary',
-#             'description': 'description',
-#             'url': 'http://www.google.fr',
-#         }
-#         pass
-
-#     def teardown_method(self):
-#         """Tests."""
-#         pass
-
-#     def test_sponsors_create_view_get_as_anonymous(self):
-#         """Tests."""
-#         r = self.client.get(reverse('dj_newsletter:post-create'))
-#         self.assertEqual(r.status_code, 302)
-#         self.assertIn('?next=/create', r.url)
-
-#     def test_sponsors_create_view_post_as_anonymous(self):
-#         """Tests."""
-#         r = self.client.post(reverse('dj_newsletter:post-create'), self.dict)
-#         self.assertEqual(r.status_code, 302)
-#         self.assertIn('?next=/create', r.url)
-
-#     def test_sponsors_create_view_get_as_logged_with_wrong_permissions(self):
-#         """Tests."""
-#         self.assertTrue(self.user.is_active)
-#         self.assertTrue(self.client.login(username="username", password="password"))
-
-#         r = self.client.get(reverse('dj_newsletter:post-create'))
-#         self.assertEqual(r.status_code, 302)
-#         self.assertIn('?next=/create', r.url)
-
-#     def test_sponsors_create_view_post_as_logged_with_wrong_permissions(self):
-#         """Tests."""
-#         self.assertTrue(self.user.is_active)
-#         self.assertTrue(self.client.login(username="username", password="password"))
-
-#         r = self.client.post(reverse('dj_newsletter:post-create'), self.dict)
-#         self.assertEqual(r.status_code, 302)
-#         self.assertIn('?next=/create', r.url)
-
-#     def test_sponsors_create_view_get_as_logged_with_right_permissions(self):
-#         """Tests."""
-#         self.assertTrue(self.user.is_active)
-#         self.assertTrue(self.client.login(username="username", password="password"))
-#         self.assertFalse(self.user.has_perm('dj_newsletter.add_sponsor'))
-
-#         self.user.user_permissions.add(Permission.objects.get(name='Can add sponsor'))
-#         r = self.client.get(reverse('dj_newsletter:post-create'))
-#         self.assertEqual(r.status_code, 200)
-
-#     def test_sponsors_create_view_post_as_logged_with_right_permissions(self):
-#         """Tests."""
-#         self.assertTrue(self.user.is_active)
-#         self.assertTrue(self.client.login(username="username", password="password"))
-#         self.assertFalse(self.user.has_perm('dj_newsletter.add_sponsor'))
-
-#         self.user.user_permissions.add(Permission.objects.get(name='Can add sponsor'))
-#         r = self.client.post(reverse('dj_newsletter:post-create'), data=self.dict)
-#         s = Post.objects.last()
-#         self.assertEqual(s.name, "Toto")
-#         self.assertEqual(r.status_code, 302)
-#         self.assertEqual(r.url, reverse('dj_newsletter:post-detail', kwargs={'pk': s.id}))
-#         self.assertTrue(os.path.isfile("{}/sponsors/{}/logo.png".format(settings.MEDIA_ROOT, s.name)))
+    def test_posts_detail_view(self):
+        """Tests."""
+        p = Post.objects.create(title="My Title", author=self.user, text="## Toto")
+        r = self.client.get(reverse('dj_newsletter:post-detail', kwargs={'pk': p.id}))
+        self.assertEqual(r.status_code, 200)
+        self.assertIn("Toto", str(r.content))
 
 
-# class TestPostUpdateView(TestCase):
-#     """Tests."""
+class TestPostCreateView(TestCase):
+    """Tests."""
 
-#     def setUp(self):
-#         """Tests."""
-#         self.user = User.objects.create_user(username="username", password="password")
-#         self.dict = {
-#             'name': 'My Toto',
-#             'summary': 'My summary',
-#             'description': 'My description',
-#             'url': 'http://www.google.fr'
-#         }
-#         self.sponsor = Post.objects.create(**self.dict)
-#         pass
+    def setUp(self):
+        """Tests."""
+        self.user = User.objects.create_user(username="author", password="author")
+        self.dict = {
+            'title': "My Title",
+            'text': "## Toto"
+        }
 
-#     def teardown_method(self):
-#         """Tests."""
-#         pass
+    def test_posts_create_view_get_as_anonymous(self):
+        """Tests."""
+        r = self.client.get(reverse('dj_newsletter:post-create'))
+        self.assertEqual(r.status_code, 302)
+        self.assertIn('?next=/create', r.url)
 
-#     def test_sponsors_update_view_get_as_anonymous(self):
-#         """Tests."""
-#         r = self.client.get(reverse('dj_newsletter:post-update', kwargs={'pk': self.sponsor.id}))
-#         self.assertEqual(r.status_code, 302)
-#         self.assertIn('?next=/{}/update'.format(self.sponsor.id), r.url)
+    def test_posts_create_view_post_as_anonymous(self):
+        """Tests."""
+        r = self.client.post(reverse('dj_newsletter:post-create'), self.dict)
+        self.assertEqual(r.status_code, 302)
+        self.assertIn('?next=/create', r.url)
 
-#     def test_sponsors_update_view_post_as_anonymous(self):
-#         """Tests."""
-#         r = self.client.post(reverse('dj_newsletter:post-update', kwargs={'pk': self.sponsor.id}), self.dict)
-#         self.assertEqual(r.status_code, 302)
-#         self.assertIn('?next=/{}/update'.format(self.sponsor.id), r.url)
+    def test_posts_create_view_get_as_logged_with_wrong_permissions(self):
+        """Tests."""
+        self.assertTrue(self.user.is_active)
+        self.assertTrue(self.client.login(username="author", password="author"))
 
-#     def test_sponsors_update_view_get_as_logged_with_wrong_permissions(self):
-#         """Tests."""
-#         self.assertTrue(self.user.is_active)
-#         self.assertTrue(self.client.login(username="username", password="password"))
+        r = self.client.get(reverse('dj_newsletter:post-create'))
+        self.assertEqual(r.status_code, 302)
+        self.assertIn('?next=/create', r.url)
 
-#         r = self.client.get(reverse('dj_newsletter:post-update', kwargs={'pk': self.sponsor.id}))
-#         self.assertEqual(r.status_code, 302)
-#         self.assertIn('?next=/{}/update'.format(self.sponsor.id), r.url)
+    def test_posts_create_view_post_as_logged_with_wrong_permissions(self):
+        """Tests."""
+        self.assertTrue(self.user.is_active)
+        self.assertTrue(self.client.login(username="author", password="author"))
 
-#     def test_sponsors_update_view_post_as_logged_with_wrong_permissions(self):
-#         """Tests."""
-#         self.assertTrue(self.user.is_active)
-#         self.assertTrue(self.client.login(username="username", password="password"))
+        r = self.client.post(reverse('dj_newsletter:post-create'), self.dict)
+        self.assertEqual(r.status_code, 302)
+        self.assertIn('?next=/create', r.url)
 
-#         r = self.client.post(reverse('dj_newsletter:post-update', kwargs={'pk': self.sponsor.id}), self.dict)
-#         self.assertEqual(r.status_code, 302)
-#         self.assertIn('?next=/{}/update'.format(self.sponsor.id), r.url)
+    def test_posts_create_view_get_as_logged_with_right_permissions(self):
+        """Tests."""
+        self.assertTrue(self.user.is_active)
+        self.assertTrue(self.client.login(username="author", password="author"))
+        self.assertFalse(self.user.has_perm('dj_newsletter.add_post'))
 
-#     def test_sponsors_update_view_get_as_logged_with_right_permissions(self):
-#         """Tests."""
-#         self.assertTrue(self.user.is_active)
-#         self.assertTrue(self.client.login(username="username", password="password"))
-#         self.assertFalse(self.user.has_perm('dj_newsletter.change_sponsor'))
+        self.user.user_permissions.add(Permission.objects.get(name='Can add post'))
+        r = self.client.get(reverse('dj_newsletter:post-create'))
+        self.assertEqual(r.status_code, 200)
 
-#         self.user.user_permissions.add(Permission.objects.get(name='Can change sponsor'))
-#         r = self.client.get(reverse('dj_newsletter:post-update', kwargs={'pk': self.sponsor.id}))
-#         self.assertEqual(r.status_code, 200)
-#         self.assertEqual(str(r.content).count('<label'), 5)
-#         self.assertEqual(str(r.content).count('</label>'), 5)
-#         self.assertIn('Post name', str(r.content))
-#         self.assertIn('Toto', str(r.content))
-#         self.assertIn('Post summary', str(r.content))
-#         self.assertIn('My summary', str(r.content))
-#         self.assertIn('Post description', str(r.content))
-#         self.assertIn('My description', str(r.content))
-#         self.assertIn('Post logo', str(r.content))
-#         self.assertIn('logo.png', str(r.content))
-#         self.assertIn('Post url', str(r.content))
-#         self.assertIn('http://www.google.fr', str(r.content))
+    def test_posts_create_view_post_as_logged_with_right_permissions(self):
+        """Tests."""
+        self.assertTrue(self.user.is_active)
+        self.assertTrue(self.client.login(username="author", password="author"))
+        self.assertFalse(self.user.has_perm('dj_newsletter.add_post'))
 
-#     def test_sponsors_update_view_post_as_logged_with_right_permissions(self):
-#         """Tests."""
-#         self.assertTrue(self.user.is_active)
-#         self.assertTrue(self.client.login(username="username", password="password"))
-#         self.assertFalse(self.user.has_perm('dj_newsletter.change_sponsor'))
-
-#         self.user.user_permissions.add(Permission.objects.get(name='Can change sponsor'))
-#         self.dict['name'] = 'Toto new'
-#         self.dict['logo'] = SimpleUploadedFile(name='index.png',
-#                                                content=open("dj_newsletter/tests/index.png", 'rb').read(),
-#                                                content_type='image/png')
-
-#         r = self.client.post(reverse('dj_newsletter:post-update', kwargs={'pk': self.sponsor.id}), data=self.dict)
-#         s = Post.objects.get(id=self.sponsor.id)
-#         self.assertEqual(s.name, "Toto new")
-#         self.assertEqual(r.status_code, 302)
-#         self.assertEqual(r.url, reverse('dj_newsletter:post-detail', kwargs={'pk': s.id}))
-#         self.assertTrue(os.path.isfile("{}/sponsors/{}/logo.png".format(settings.MEDIA_ROOT, s.name)))
+        self.user.user_permissions.add(Permission.objects.get(name='Can add post'))
+        r = self.client.post(reverse('dj_newsletter:post-create'), data=self.dict)
+        p = Post.objects.last()
+        self.assertEqual(p.title, "My Title")
+        self.assertEqual(r.status_code, 302)
+        self.assertEqual(r.url, reverse('dj_newsletter:post-detail', kwargs={'pk': p.id}))
 
 
-# class TestPostDeleteView(TestCase):
-#     """Tests."""
+class TestPostUpdateView(TestCase):
+    """Tests."""
 
-#     def setUp(self):
-#         """Tests."""
-#         self.user = User.objects.create_user(username="username", password="password")
-#         self.dict = {
-#             'name': 'My Toto',
-#             'summary': 'My summary',
-#             'description': 'My description',
-#             'url': 'http://www.google.fr',
-#         }
-#         self.sponsor = Post.objects.create(**self.dict)
-#         pass
+    def setUp(self):
+        """Tests."""
+        self.user = User.objects.create_user(username="author", password="author")
+        self.dict = {
+            'title': "My Title",
+            'author': self.user,
+            'text': "## Toto"
+        }
+        self.post = Post.objects.create(**self.dict)
+        pass
 
-#     def teardown_method(self):
-#         """Tests."""
-#         pass
+    def teardown_method(self):
+        """Tests."""
+        pass
 
-#     def test_sponsors_delete_view_get_as_anonymous(self):
-#         """Tests."""
-#         r = self.client.get(reverse('dj_newsletter:post-delete', kwargs={'pk': self.sponsor.id}))
-#         self.assertEqual(r.status_code, 302)
-#         self.assertIn('?next=/{}/delete'.format(self.sponsor.id), r.url)
+    def test_posts_update_view_get_as_anonymous(self):
+        """Tests."""
+        r = self.client.get(reverse('dj_newsletter:post-update', kwargs={'pk': self.post.id}))
+        self.assertEqual(r.status_code, 302)
+        self.assertIn('?next=/{}/update'.format(self.post.id), r.url)
 
-#     def test_sponsors_delete_view_post_as_anonymous(self):
-#         """Tests."""
-#         r = self.client.post(reverse('dj_newsletter:post-delete', kwargs={'pk': self.sponsor.id}), self.dict)
-#         self.assertEqual(r.status_code, 302)
-#         self.assertIn('?next=/{}/delete'.format(self.sponsor.id), r.url)
+    def test_posts_update_view_post_as_anonymous(self):
+        """Tests."""
+        r = self.client.post(reverse('dj_newsletter:post-update', kwargs={'pk': self.post.id}), self.dict)
+        self.assertEqual(r.status_code, 302)
+        self.assertIn('?next=/{}/update'.format(self.post.id), r.url)
 
-#     def test_sponsors_delete_view_get_as_logged_with_wrong_permissions(self):
-#         """Tests."""
-#         self.assertTrue(self.user.is_active)
-#         self.assertTrue(self.client.login(username="username", password="password"))
+    def test_posts_update_view_get_as_logged_with_wrong_permissions(self):
+        """Tests."""
+        self.assertTrue(self.user.is_active)
+        self.assertTrue(self.client.login(username="author", password="author"))
 
-#         r = self.client.get(reverse('dj_newsletter:post-delete', kwargs={'pk': self.sponsor.id}))
-#         self.assertEqual(r.status_code, 302)
-#         self.assertIn('?next=/{}/delete'.format(self.sponsor.id), r.url)
+        r = self.client.get(reverse('dj_newsletter:post-update', kwargs={'pk': self.post.id}))
+        self.assertEqual(r.status_code, 302)
+        self.assertIn('?next=/{}/update'.format(self.post.id), r.url)
 
-#     def test_sponsors_delete_view_post_as_logged_with_wrong_permissions(self):
-#         """Tests."""
-#         self.assertTrue(self.user.is_active)
-#         self.assertTrue(self.client.login(username="username", password="password"))
+    def test_posts_update_view_post_as_logged_with_wrong_permissions(self):
+        """Tests."""
+        self.assertTrue(self.user.is_active)
+        self.assertTrue(self.client.login(username="author", password="author"))
 
-#         r = self.client.post(reverse('dj_newsletter:post-delete', kwargs={'pk': self.sponsor.id}), self.dict)
-#         self.assertEqual(r.status_code, 302)
-#         self.assertIn('?next=/{}/delete'.format(self.sponsor.id), r.url)
+        r = self.client.post(reverse('dj_newsletter:post-update', kwargs={'pk': self.post.id}), self.dict)
+        self.assertEqual(r.status_code, 302)
+        self.assertIn('?next=/{}/update'.format(self.post.id), r.url)
 
-#     def test_sponsors_delete_view_get_as_logged_with_right_permissions(self):
-#         """Tests."""
-#         self.assertTrue(self.user.is_active)
-#         self.assertTrue(self.client.login(username="username", password="password"))
-#         self.assertFalse(self.user.has_perm('dj_newsletter.delete_sponsor'))
+    def test_posts_update_view_get_as_logged_with_right_permissions(self):
+        """Tests."""
+        self.assertTrue(self.user.is_active)
+        self.assertTrue(self.client.login(username="author", password="author"))
+        self.assertFalse(self.user.has_perm('dj_newsletter.change_post'))
 
-#         self.user.user_permissions.add(Permission.objects.get(name='Can delete sponsor'))
-#         r = self.client.get(reverse('dj_newsletter:post-delete', kwargs={'pk': self.sponsor.id}))
-#         self.assertEqual(r.status_code, 200)
-#         self.assertIn("<h1 class=\"float-left\">{}</h1>".format(self.sponsor.name), str(r.content))
-#         self.assertIn("<p>Do you really want to delete that sponsor?</p>", str(r.content))
+        self.user.user_permissions.add(Permission.objects.get(name='Can change post'))
+        r = self.client.get(reverse('dj_newsletter:post-update', kwargs={'pk': self.post.id}))
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(str(r.content).count('<label'), 2)
+        self.assertEqual(str(r.content).count('</label>'), 2)
+        self.assertIn('Post title', str(r.content))
+        self.assertIn('My Title', str(r.content))
+        self.assertIn('Post text', str(r.content))
+        self.assertIn('# Toto', str(r.content))
 
-#     def test_sponsors_delete_view_post_as_logged_with_right_permissions(self):
-#         """Tests."""
-#         self.assertTrue(self.user.is_active)
-#         self.assertTrue(self.client.login(username="username", password="password"))
-#         self.assertFalse(self.user.has_perm('dj_newsletter.delete_sponsor'))
+    def test_posts_update_view_post_as_logged_with_right_permissions(self):
+        """Tests."""
+        self.assertTrue(self.user.is_active)
+        self.assertTrue(self.client.login(username="author", password="author"))
+        self.assertFalse(self.user.has_perm('dj_newsletter.change_post'))
 
-#         self.user.user_permissions.add(Permission.objects.get(name='Can delete sponsor'))
-#         self.assertEqual(Post.objects.count(), 1)
-#         r = self.client.post(reverse('dj_newsletter:post-delete', kwargs={'pk': self.sponsor.id}))
-#         self.assertEqual(Post.objects.count(), 0)
-#         self.assertEqual(r.status_code, 302)
-#         self.assertEqual(r.url, reverse('dj_newsletter:sponsors-list'))
+        self.user.user_permissions.add(Permission.objects.get(name='Can change post'))
+        self.dict['title'] = 'Toto new'
+        r = self.client.post(reverse('dj_newsletter:post-update', kwargs={'pk': self.post.id}), data=self.dict)
+        p = Post.objects.get(id=self.post.id)
+        self.assertEqual(p.title, "Toto new")
+        self.assertEqual(r.status_code, 302)
+        self.assertEqual(r.url, reverse('dj_newsletter:post-detail', kwargs={'pk': p.id}))
+
+
+class TestPostDeleteView(TestCase):
+    """Tests."""
+
+    def setUp(self):
+        """Tests."""
+        self.user = User.objects.create_user(username="author", password="author")
+        self.dict = {
+            'title': "My Title",
+            'author': self.user,
+            'text': "## Toto"
+        }
+        self.post = Post.objects.create(**self.dict)
+
+    def test_posts_delete_view_get_as_anonymous(self):
+        """Tests."""
+        r = self.client.get(reverse('dj_newsletter:post-delete', kwargs={'pk': self.post.id}))
+        self.assertEqual(r.status_code, 302)
+        self.assertIn('?next=/{}/delete'.format(self.post.id), r.url)
+
+    def test_posts_delete_view_post_as_anonymous(self):
+        """Tests."""
+        r = self.client.post(reverse('dj_newsletter:post-delete', kwargs={'pk': self.post.id}), self.dict)
+        self.assertEqual(r.status_code, 302)
+        self.assertIn('?next=/{}/delete'.format(self.post.id), r.url)
+
+    def test_posts_delete_view_get_as_logged_with_wrong_permissions(self):
+        """Tests."""
+        self.assertTrue(self.user.is_active)
+        self.assertTrue(self.client.login(username="author", password="author"))
+
+        r = self.client.get(reverse('dj_newsletter:post-delete', kwargs={'pk': self.post.id}))
+        self.assertEqual(r.status_code, 302)
+        self.assertIn('?next=/{}/delete'.format(self.post.id), r.url)
+
+    def test_posts_delete_view_post_as_logged_with_wrong_permissions(self):
+        """Tests."""
+        self.assertTrue(self.user.is_active)
+        self.assertTrue(self.client.login(username="author", password="author"))
+
+        r = self.client.post(reverse('dj_newsletter:post-delete', kwargs={'pk': self.post.id}), self.dict)
+        self.assertEqual(r.status_code, 302)
+        self.assertIn('?next=/{}/delete'.format(self.post.id), r.url)
+
+    def test_posts_delete_view_get_as_logged_with_right_permissions(self):
+        """Tests."""
+        self.assertTrue(self.user.is_active)
+        self.assertTrue(self.client.login(username="author", password="author"))
+        self.assertFalse(self.user.has_perm('dj_newsletter.delete_post'))
+
+        self.user.user_permissions.add(Permission.objects.get(name='Can delete post'))
+        r = self.client.get(reverse('dj_newsletter:post-delete', kwargs={'pk': self.post.id}))
+        self.assertEqual(r.status_code, 200)
+        self.assertIn("<h1 class=\"float-left\">{}</h1>".format(self.post.title), str(r.content))
+        self.assertIn("<p>Do you really want to delete that post?</p>", str(r.content))
+
+    def test_posts_delete_view_post_as_logged_with_right_permissions(self):
+        """Tests."""
+        self.assertTrue(self.user.is_active)
+        self.assertTrue(self.client.login(username="author", password="author"))
+        self.assertFalse(self.user.has_perm('dj_newsletter.delete_post'))
+
+        self.user.user_permissions.add(Permission.objects.get(name='Can delete post'))
+        self.assertEqual(Post.objects.count(), 1)
+        r = self.client.post(reverse('dj_newsletter:post-delete', kwargs={'pk': self.post.id}))
+        self.assertEqual(Post.objects.count(), 0)
+        self.assertEqual(r.status_code, 302)
+        self.assertEqual(r.url, reverse('dj_newsletter:posts-list'))

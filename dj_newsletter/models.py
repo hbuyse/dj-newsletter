@@ -39,13 +39,17 @@ class Comment(models.Model):
 
     post = models.ForeignKey('Post', on_delete=models.CASCADE)
     author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    text = models.TextField(_("Comment text"))
     created = models.DateTimeField('Comment creation date', auto_now_add=True)
     modified = models.DateTimeField('Comment last modification date', auto_now=True)
-    text = models.TextField(_("Comment text"))
 
     class Meta:
         """Meta class."""
 
-        verbose_name = _("Comment")
-        verbose_name_plural = _("Comments")
+        verbose_name = _("comment")
+        verbose_name_plural = _("comments")
         ordering = ("post", "-created",)
+
+    def __str__(self):
+        """String representation."""
+        return "{} - {} ({})".format(self.post.title, self.author, self.id)
