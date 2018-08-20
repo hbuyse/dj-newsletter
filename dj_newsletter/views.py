@@ -103,12 +103,10 @@ class CommentUpdateView(PermissionRequiredMixin, UpdateView):
 
     def get_success_url(self):
         """Get the URL after the success."""
-        url = str()
+        url = reverse('dj_newsletter:posts-list')
 
         if 'post_pk' in self.request.session:
             url = reverse('dj_newsletter:post-detail', kwargs={'pk': self.request.session['post_pk']})
-        else:
-            url = reverse('dj_newsletter:posts-list')
 
         return url
 
@@ -122,11 +120,9 @@ class CommentDeleteView(PermissionRequiredMixin, DeleteView):
 
     def get_success_url(self):
         """Get the URL after the success."""
-        url = str()
+        url = reverse('dj_newsletter:posts-list')
 
         if 'post_pk' in self.request.session:
             url = reverse('dj_newsletter:post-detail', kwargs={'pk': self.request.session['post_pk']})
-        else:
-            url = reverse('dj_newsletter:posts-list')
 
         return url
