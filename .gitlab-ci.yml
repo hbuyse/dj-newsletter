@@ -2,14 +2,12 @@ image: python
 
 stages:
   - test
+  - package
 
 before_script:
   - curl -O https://bootstrap.pypa.io/get-pip.py
   - python get-pip.py
   - pip install -r requirements/test.txt
-
-after_script:
-  - coverage report
 
 python34:
   image: python:3.4
@@ -28,3 +26,14 @@ python36:
   stage: test
   script:
     - tox -e py36-django-20
+
+dist:
+  image: python:3.6
+  stage: package
+  only:
+    - tags
+  script:
+    - python setup.py sdist
+  artifacts:
+    paths:
+      - "dist/*"
