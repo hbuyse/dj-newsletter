@@ -1,23 +1,35 @@
-<h1 class="float-left">{{ object }}</h1>
+<h1>{{ post }}</h1>
 
-<p>{{ object.summary }}</p>
-<p>{{ object.text_md|safe }}</p>
+<a href="{% url 'dj_newsletter:post-update' post.id %}">Update</a> 
+<a href="{% url 'dj_newsletter:post-delete' post.id %}">Delete</a>
+
+<p><small>Written by {{ post.author.get_full_name }} at {{ post.created|date:"d/m/Y H:G" }}</small></p>
+
+<p>{{ post.text_md|safe }}</p>
 
 
-
-{% for comment in post.get_comments %}
+{% for comment in post.comment_set.all %}
   {% if forloop.first %}
-    <h3 class="mt-4">{{ post.get_comments.count }} comment{% if post.get_comments.count >= 2 %}s{% endif %}</h3>
+    <h3>{{ post.comment_set.count }} comment{% if post.comment_set.count >= 2 %}s{% endif %}</h3>
+    <ul>
   {% endif %}
-    <div class="card mb-2">
-      <div class="card-header">
-          <div class="float-left">{{ comment.author.get_full_name }}</div>
-          <div class="float-right">{{ comment.created|date:"d/m/Y H:G" }}</div>
-      </div>
-      <div class="card-body">
-        <p class="card-text">{{ comment.text|safe }}</p>
-      </div>
+      <li>
+        <p>
+          Written by {{ comment.author.get_full_name }} at {{ comment.created|date:"d/m/Y H:G" }} 
+          <a href="{% url 'dj_newsletter:post-comment-update' comment.id %}">Update</a> 
+          <a href="{% url 'dj_newsletter:post-comment-delete' comment.id %}">Delete</a>
+        </p>
+        {{ comment.text|linebreaks }}
     </div>
+  {% if forloop.last %}
+    </ul>
+  {% endif %}
 {% empty %}
-<h3 class="mt-4">No comment</h3>
+  <h3>No comment</h3>
 {% endfor %}
+
+<form method="post" enctype="multipart/form-data">
+  {% csrf_token %}
+  {{ form.as_p }}
+  <button type="submit">Save</button>
+</form>

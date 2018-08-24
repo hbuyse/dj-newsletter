@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block path %}
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'dj_newsletter:posts-list' %}">Home</a></li>
+      <li class="breadcrumb-item active" aria-current="page">{{ post }}</a></li>
+    </ol>
+  </nav>
+{% endblock %}
+
+{% block page_title %}
+  {{ post }}
+{% endblock %}
+
+{% block page_title_buttons %}
+  <div class="btn-group float-right" role="group" aria-label="Basic example">
+    <a class="btn btn-primary" href="{% url 'dj_newsletter:post-update' post.id %}">Update</a>
+    <a class="btn btn-danger" href="{% url 'dj_newsletter:post-delete' post.id %}">Delete</a>
+  </div>
+{% endblock %}
+
+{% block content %}
+  <p><small>Written by {{ post.author.get_full_name }} at {{ post.created|date:"d/m/Y H:G" }}</small></p>
+
+  <p>{{ post.text_md|safe }}</p>
+
+
+  {% for comment in post.comment_set.all %}
+    {% if forloop.first %}
+      <h3>{{ post.comment_set.count }} comment{% if post.comment_set.count >= 2 %}s{% endif %}</h3>
+      <ul>
+    {% endif %}
+        <li>
+          <p>
+            Written by {{ comment.author.get_full_name }} at {{ comment.created|date:"d/m/Y H:G" }} 
+            <a href="{% url 'dj_newsletter:post-comment-update' comment.id %}">Update</a> 
+            <a href="{% url 'dj_newsletter:post-comment-delete' comment.id %}">Delete</a>
+          </p>
+          {{ comment.text|linebreaks }}
+      </div>
+    {% if forloop.last %}
+      </ul>
+    {% endif %}
+  {% empty %}
+    <h3>No comment</h3>
+  {% endfor %}
+
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Save</button>
+  </form>
+{% endblock %}

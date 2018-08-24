@@ -3,6 +3,7 @@
 """Views."""
 
 from django.contrib.auth.mixins import PermissionRequiredMixin
+from django.http import HttpResponseForbidden
 from django.urls import reverse
 from django.views.generic import (
     CreateView,
@@ -10,6 +11,11 @@ from django.views.generic import (
     DetailView,
     UpdateView,
     ListView
+)
+from django.views.generic.edit import FormMixin
+
+from .forms import (
+    PostCommentForm
 )
 
 from .models import (
@@ -25,15 +31,42 @@ class PostListView(ListView):
     paginate_by = 10
 
 
-class PostDetailView(DetailView):
+class PostDetailView(FormMixin, DetailView):
     """Show the details of a post."""
 
     model = Post
+    form_class = PostCommentForm
+
+    def get_success_url(self):
+        """."""
+        return reverse('dj_newsletter:post-detail', kwargs={'pk': self.object.pk})
 
     def get_context_data(self, **kwargs):
         """Add post_id in request.session."""
+        context = super().get_context_data(**kwargs)
+        context['form'] = self.get_form()
         self.request.session['post_pk'] = self.kwargs['pk']
-        return super().get_context_data(**kwargs)
+        return context
+
+    def post(self, request, *args, **kwargs):
+        """."""
+        if not request.user.is_authenticated:
+            return HttpResponseForbidden("Wrong permissions")
+        self.object = self.get_object()
+        print(self.object)
+        form = self.get_form()
+        if form.is_valid():
+            return self.form_valid(form)
+        else:
+            return self.form_invalid(form)
+
+    def form_valid(self, form):
+        """Validate the form."""
+        form.instance.post = Post.objects.get(id=self.kwargs['pk'])
+        form.instance.author = self.request.user
+        form.save()
+        print("Hello")
+        return super().form_valid(form)
 
 
 class PostCreateView(PermissionRequiredMixin, CreateView):

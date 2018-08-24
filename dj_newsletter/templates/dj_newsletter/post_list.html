@@ -1,22 +1,16 @@
 <h1 class="float-left">Posts</h1>
 
-{% for object in objects %}
+{% for post in post_list %}
   {% if forloop.first %}
-    <div class="list-group">
+    <ul>
   {% endif %}
 
-  <a href="{% url 'dj_newsletter:post-detail' object.id %}" class="list-group-item list-group-item-action flex-column align-items-start">
-    <div class="d-flex row">
-      <img class="col-md-2" class="mr-2" src="{{ object.logo.url }}" alt="{{ object }}">
-      <div class="col-md-10 align-self-center">
-        <h5 class="mb-1">{{ object }}</h5>
-        <p class="mb-1">{{ object.summary }}</p>
-      </div>
-    </div>
-  </a>
+  <li>
+    <a href="{% url 'dj_newsletter:post-detail' post.id %}">{{ post }}</a>
+  </li>
 
   {% if forloop.last %}
-    </div>
+    </ul>
   {% endif %}
 {% empty %}
   <p>No posts...</p>
