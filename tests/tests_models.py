@@ -6,6 +6,8 @@
 from dj_newsletter.models import Post, Comment
 
 from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
+
 from django.test import TestCase
 
 
@@ -14,7 +16,7 @@ class TestPostModel(TestCase):
 
     def setUp(self):
         """Setup function."""
-        self.user = User.objects.create_user(username="username", password="password")
+        self.user = get_user_model().objects.create_user(username="username", password="password")
         self.dict = {
             'title': "My Title",
             'author': self.user,
@@ -66,7 +68,7 @@ class TestCommentModel(TestCase):
 
     def setUp(self):
         """Setup function."""
-        self.user = User.objects.create_user(username="username", password="password")
+        self.user = get_user_model().objects.create_user(username="username", password="password")
         self.post = Post.objects.create(title="My Title", author=self.user, text="My text")
 
     def test_string_representation(self):

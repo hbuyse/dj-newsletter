@@ -6,6 +6,7 @@
 from dj_newsletter.models import Post, Comment
 
 from django.contrib.auth.models import Permission, User
+from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
 
@@ -15,7 +16,7 @@ class TestPostListView(TestCase):
 
     def setUp(self):
         """Tests."""
-        self.user = User.objects.create_user(username="author", password="author")
+        self.user = get_user_model().objects.create_user(username="author", password="author")
 
     def test_posts_list_view_empty(self):
         """Tests."""
@@ -36,7 +37,7 @@ class TestPostDetailView(TestCase):
 
     def setUp(self):
         """Tests."""
-        self.user = User.objects.create_user(username="author", password="author")
+        self.user = get_user_model().objects.create_user(username="author", password="author")
 
     def test_posts_detail_view_not_existing(self):
         """Tests."""
@@ -59,7 +60,7 @@ class TestPostCreateView(TestCase):
 
     def setUp(self):
         """Tests."""
-        self.user = User.objects.create_user(username="author", password="author")
+        self.user = get_user_model().objects.create_user(username="author", password="author")
         self.dict = {
             'title': "My Title",
             'text': "## Toto"
@@ -124,7 +125,7 @@ class TestPostUpdateView(TestCase):
 
     def setUp(self):
         """Tests."""
-        self.user = User.objects.create_user(username="author", password="author")
+        self.user = get_user_model().objects.create_user(username="author", password="author")
         self.dict = {
             'title': "My Title",
             'author': self.user,
@@ -198,7 +199,7 @@ class TestPostDeleteView(TestCase):
 
     def setUp(self):
         """Tests."""
-        self.user = User.objects.create_user(username="author", password="author")
+        self.user = get_user_model().objects.create_user(username="author", password="author")
         self.dict = {
             'title': "My Title",
             'author': self.user,
@@ -267,7 +268,7 @@ class TestCommentCreateView(TestCase):
 
     def setUp(self):
         """Tests."""
-        self.user = User.objects.create_user(username="author", password="author")
+        self.user = get_user_model().objects.create_user(username="author", password="author")
         self.post = Post.objects.create(title="My Title", author=self.user, text="## Toto")
         self.dict = {
             'text': "Hello World"
@@ -332,7 +333,7 @@ class TestCommentUpdateView(TestCase):
 
     def setUp(self):
         """Tests."""
-        self.user = User.objects.create_user(username="author", password="author")
+        self.user = get_user_model().objects.create_user(username="author", password="author")
         self.post = Post.objects.create(title="My Title", author=self.user, text="## Toto")
         self.dict = {
             'post': self.post,
@@ -426,7 +427,7 @@ class TestCommentDeleteView(TestCase):
 
     def setUp(self):
         """Tests."""
-        self.user = User.objects.create_user(username="author", password="author")
+        self.user = get_user_model().objects.create_user(username="author", password="author")
         self.post = Post.objects.create(title="My Title", author=self.user, text="## Toto")
         self.dict = {
             'post': self.post,
