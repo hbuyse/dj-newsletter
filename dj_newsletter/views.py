@@ -109,24 +109,6 @@ class PostDeleteView(PermissionRequiredMixin, DeleteView):
         return reverse('dj_newsletter:posts-list')
 
 
-class CommentCreateView(PermissionRequiredMixin, CreateView):
-    """View that allows the creation of a comment."""
-
-    model = Comment
-    fields = ['text']
-    permission_required = 'dj_newsletter.add_comment'
-
-    def form_valid(self, form):
-        """Validate the form."""
-        form.instance.post = Post.objects.get(id=self.kwargs['pk'])
-        form.instance.author = self.request.user
-        return super().form_valid(form)
-
-    def get_success_url(self):
-        """Get the URL after the success."""
-        return reverse('dj_newsletter:post-detail', kwargs={'pk': self.kwargs['pk']})
-
-
 class CommentUpdateView(PermissionRequiredMixin, UpdateView):
     """View that allows the modification of a post."""
 
