@@ -5,7 +5,7 @@
 
 from dj_newsletter.models import Post, Comment
 
-from django.contrib.auth.models import Permission, User
+from django.contrib.auth.models import Permission
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
@@ -247,7 +247,7 @@ class TestPostDeleteView(TestCase):
         r = self.client.get(reverse('dj_newsletter:post-delete', kwargs={'pk': self.post.id}))
         self.assertEqual(r.status_code, 200)
         self.assertIn("<h1 class=\"float-left\">{}</h1>".format(self.post.title), str(r.content))
-        self.assertIn("<p>Do you really want to delete that post?</p>", str(r.content))
+        self.assertIn("<p>Do you really want to delete that post and its comments?</p>", str(r.content))
 
     def test_posts_delete_view_post_as_logged_with_right_permissions(self):
         """Tests."""
@@ -261,71 +261,6 @@ class TestPostDeleteView(TestCase):
         self.assertEqual(Post.objects.count(), 0)
         self.assertEqual(r.status_code, 302)
         self.assertEqual(r.url, reverse('dj_newsletter:posts-list'))
-
-
-class TestCommentCreateView(TestCase):
-    """Tests."""
-
-    def setUp(self):
-        """Tests."""
-        self.user = get_user_model().objects.create_user(username="author", password="author")
-        self.post = Post.objects.create(title="My Title", author=self.user, text="## Toto")
-        self.dict = {
-            'text': "Hello World"
-        }
-
-    def test_comments_create_view_get_as_anonymous(self):
-        """Tests."""
-        r = self.client.get(reverse('dj_newsletter:post-comment-create', kwargs={'pk': self.post.id}))
-        self.assertEqual(r.status_code, 302)
-        self.assertIn('?next=/{}/comments/create'.format(self.post.id), r.url)
-
-    def test_comments_create_view_comment_as_anonymous(self):
-        """Tests."""
-        r = self.client.post(reverse('dj_newsletter:post-comment-create', kwargs={'pk': self.post.id}), self.dict)
-        self.assertEqual(r.status_code, 302)
-        self.assertIn('?next=/{}/comments/create'.format(self.post.id), r.url)
-
-    def test_comments_create_view_get_as_logged_with_wrong_permissions(self):
-        """Tests."""
-        self.assertTrue(self.user.is_active)
-        self.assertTrue(self.client.login(username="author", password="author"))
-
-        r = self.client.get(reverse('dj_newsletter:post-comment-create', kwargs={'pk': self.post.id}))
-        self.assertEqual(r.status_code, 302)
-        self.assertIn('?next=/{}/comments/create'.format(self.post.id), r.url)
-
-    def test_comments_create_view_comment_as_logged_with_wrong_permissions(self):
-        """Tests."""
-        self.assertTrue(self.user.is_active)
-        self.assertTrue(self.client.login(username="author", password="author"))
-
-        r = self.client.post(reverse('dj_newsletter:post-comment-create', kwargs={'pk': self.post.id}), self.dict)
-        self.assertEqual(r.status_code, 302)
-        self.assertIn('?next=/{}/comments/create'.format(self.post.id), r.url)
-
-    def test_comments_create_view_get_as_logged_with_right_permissions(self):
-        """Tests."""
-        self.assertTrue(self.user.is_active)
-        self.assertTrue(self.client.login(username="author", password="author"))
-        self.assertFalse(self.user.has_perm('dj_newsletter.add_Comment'))
-
-        self.user.user_permissions.add(Permission.objects.get(name='Can add comment'))
-        r = self.client.get(reverse('dj_newsletter:post-comment-create', kwargs={'pk': self.post.id}))
-        self.assertEqual(r.status_code, 200)
-
-    def test_comments_create_view_comment_as_logged_with_right_permissions(self):
-        """Tests."""
-        self.assertTrue(self.user.is_active)
-        self.assertTrue(self.client.login(username="author", password="author"))
-        self.assertFalse(self.user.has_perm('dj_newsletter.add_Comment'))
-
-        self.user.user_permissions.add(Permission.objects.get(name='Can add comment'))
-        r = self.client.post(reverse('dj_newsletter:post-comment-create', kwargs={'pk': self.post.id}), data=self.dict)
-        p = Comment.objects.last()
-        self.assertEqual(p.text, "Hello World")
-        self.assertEqual(r.status_code, 302)
-        self.assertEqual(r.url, reverse('dj_newsletter:post-detail', kwargs={'pk': p.id}))
 
 
 class TestCommentUpdateView(TestCase):
