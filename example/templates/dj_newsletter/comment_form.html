@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% load bootstrap4 %}
+
+{% block path %}
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'dj_newsletter:posts-list' %}">Home</a></li>
+      {% if 'create' in request.path %}
+        <li class="breadcrumb-item active" aria-current="page">Create comment for post '{{ comment.post }}'</a></li>
+      {% elif 'update' in request.path %}
+        <li class="breadcrumb-item active" aria-current="page">Update comment for post '{{ comment.post }}'</a></li>
+      {% endif %}
+    </ol>
+  </nav>
+{% endblock %}
+
+{% block page_title %}
+  {% if 'create' in request.path %}
+    Create comment for post '{{ comment.post }}'
+  {% elif 'update' in request.path %}
+    Update comment for post '{{ comment.post }}'
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {% bootstrap_form form layout='inline' %}
+    {% bootstrap_button "Save" button_type="submit" button_class="btn-primary" %}
+  </form>
+{% endblock %}

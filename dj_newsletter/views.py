@@ -2,8 +2,9 @@
 
 """Views."""
 
+from django.contrib import messages
 from django.contrib.auth.mixins import PermissionRequiredMixin
-from django.http import HttpResponseForbidden
+from django.core.exceptions import PermissionDenied
 from django.urls import reverse
 from django.views.generic import (
     CreateView,
@@ -39,6 +40,7 @@ class PostDetailView(FormMixin, DetailView):
 
     def get_success_url(self):
         """."""
+        messages.success(self.request, "Comment successfully added")
         return reverse('dj_newsletter:post-detail', kwargs={'pk': self.object.pk})
 
     def get_context_data(self, **kwargs):
@@ -51,9 +53,10 @@ class PostDetailView(FormMixin, DetailView):
     def post(self, request, *args, **kwargs):
         """."""
         if not request.user.is_authenticated:
-            return HttpResponseForbidden("Wrong permissions")
+            raise PermissionDenied
+        elif not request.user.has_perm("dj_newsletter.add_comment"):
+            raise PermissionDenied
         self.object = self.get_object()
-        print(self.object)
         form = self.get_form()
         if form.is_valid():
             return self.form_valid(form)
@@ -65,7 +68,6 @@ class PostDetailView(FormMixin, DetailView):
         form.instance.post = Post.objects.get(id=self.kwargs['pk'])
         form.instance.author = self.request.user
         form.save()
-        print("Hello")
         return super().form_valid(form)
 
 
@@ -83,6 +85,7 @@ class PostCreateView(PermissionRequiredMixin, CreateView):
 
     def get_success_url(self):
         """Get the URL after the success."""
+        messages.success(self.request, "Post '{}' added successfully".format(self.object.title))
         return reverse('dj_newsletter:post-detail', kwargs={'pk': self.object.id})
 
 
@@ -95,6 +98,7 @@ class PostUpdateView(PermissionRequiredMixin, UpdateView):
 
     def get_success_url(self):
         """Get the URL after the success."""
+        messages.success(self.request, "Post '{}' updated successfully".format(self.object.title))
         return reverse('dj_newsletter:post-detail', kwargs={'pk': self.object.id})
 
 
@@ -106,6 +110,7 @@ class PostDeleteView(PermissionRequiredMixin, DeleteView):
 
     def get_success_url(self, **kwargs):
         """Get the URL after the success."""
+        messages.success(self.request, "Post '{}' deleted successfully".format(self.object.title))
         return reverse('dj_newsletter:posts-list')
 
 
@@ -123,6 +128,7 @@ class CommentUpdateView(PermissionRequiredMixin, UpdateView):
         if 'post_pk' in self.request.session:
             url = reverse('dj_newsletter:post-detail', kwargs={'pk': self.request.session['post_pk']})
 
+        messages.success(self.request, "Comment successfully updated")
         return url
 
 
@@ -140,4 +146,5 @@ class CommentDeleteView(PermissionRequiredMixin, DeleteView):
         if 'post_pk' in self.request.session:
             url = reverse('dj_newsletter:post-detail', kwargs={'pk': self.request.session['post_pk']})
 
+        messages.success(self.request, "Comment successfully deleted")
         return url

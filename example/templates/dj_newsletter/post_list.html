@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% load bootstrap4 %}
+
+{% block path %}
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item active">Home</li>
+    </ol>
+  </nav>
+{% endblock %}
+
+{% block page_title %}
+  Posts list
+{% endblock %}
+
+{% block page_title_buttons %}
+  <div class="btn-group float-right" role="group" aria-label="Basic example">
+    <a class="btn btn-primary" href="{% url 'dj_newsletter:post-create' %}">New post</a>
+  </div>
+{% endblock %}
+
+{% block content %}
+  {% for post in post_list %}
+    {% if forloop.first %}
+      <div class="list-group w-100 mb-2">
+    {% endif %}
+
+    <a href="{% url 'dj_newsletter:post-detail' post.id %}" class="list-group-item list-group-item-action flex-column align-items-start">
+      <div class="d-flex justify-content-between">
+        <h4 class="mb-1">{{ post.title }}</h4>
+        <small>{{ post.author.get_full_name }} - {{ post.created|date:"d/m/Y H:i" }}</small>
+      </div>
+      <p class="mb-1">{{ post.text_md|striptags|slice:":512" }}{% if post.text|length > 512 %}...{% endif %}</p>
+    </a>
+    {% if forloop.last %}
+      </div>
+    {% endif %}
+  {% empty %}
+    <h3>No posts right now...</h3>
+  {% endfor %}
+{% endblock %}

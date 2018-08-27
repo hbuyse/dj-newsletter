@@ -1,12 +1,23 @@
-{# {% extends 'base.html' %} #}
+{% extends 'base.html' %}
+{% load bootstrap4 %}
 
-{% block title %}Login{% endblock %}
+{% block path %}
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{% url 'dj_newsletter:posts-list' %}">Accueil</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Connexion</li>
+  </ol>
+</nav>
+{% endblock %}
 
+
+{% block page_title %}
+Connexion
+{% endblock %}
 {% block content %}
-  <h2>Login</h2>
-  <form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Login</button>
-  </form>
+<form method="post">
+  {% csrf_token %}
+  {% bootstrap_form form layout="horizontal" %}
+  {% bootstrap_button "Connexion" button_type="submit" button_class="btn-primary" %}
+</form>
 {% endblock %}

@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load bootstrap4 %}
 
 {% block path %}
   <nav aria-label="breadcrumb">
@@ -21,34 +22,81 @@
 {% endblock %}
 
 {% block content %}
-  <p><small>Written by {{ post.author.get_full_name }} at {{ post.created|date:"d/m/Y H:G" }}</small></p>
+  <p><small>Written by {{ post.author.get_full_name }} at {{ post.created|date:"d/m/Y H:i" }}</small></p>
 
   <p>{{ post.text_md|safe }}</p>
 
-
   {% for comment in post.comment_set.all %}
     {% if forloop.first %}
-      <h3>{{ post.comment_set.count }} comment{% if post.comment_set.count >= 2 %}s{% endif %}</h3>
-      <ul>
-    {% endif %}
-        <li>
-          <p>
-            Written by {{ comment.author.get_full_name }} at {{ comment.created|date:"d/m/Y H:G" }} 
-            <a href="{% url 'dj_newsletter:post-comment-update' comment.id %}">Update</a> 
-            <a href="{% url 'dj_newsletter:post-comment-delete' comment.id %}">Delete</a>
-          </p>
-          {{ comment.text|linebreaks }}
+      <h3 class="float-left">{{ post.comment_set.count }} comment{% if post.comment_set.count >= 2 %}s{% endif %}</h3>
+      <div class="btn-group float-right" role="group" aria-label="Basic example">
+        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#vcnModal">
+          Add new comment
+        </button>
+        <button type="button" class="btn btn-primary" data-container="body" data-toggle="popover" data-placement="bottom" data-content="To update your comment, you have to click on it. It will redirect you to the update/delete page">
+          Update comment
+        </button>
+        <button type="button" class="btn btn-primary" data-container="body" data-toggle="popover" data-placement="bottom" data-content="To delete your comment, you have to click on it. It will redirect you to the update page, then you can click on the deletion button">
+          Delete comment
+        </button>
       </div>
+      <div class="list-group w-100 mb-2">
+    {% endif %}
+
+    {% if user.is_authenticated and comment.author == user %}
+      <a href="{% url 'dj_newsletter:post-comment-update' comment.id %}" class="list-group-item list-group-item-action flex-column align-items-start">
+    {% else %}
+      <li class="list-group-item flex-column align-items-start">
+    {% endif %}
+      <div class="d-flex justify-content-between">
+        <h5 class="mb-0">{{ comment.author.get_full_name }}</h5>
+        <small>{{ comment.created|date:"d/m/Y H:i" }}</small>
+      </div>
+      <p class="mb-1">{{ comment.text|linebreaks }}</p>
+
+    {% if comment.author == request.user %}
+      </a>
+    {% else %}
+      </li>
+    {% endif %}
     {% if forloop.last %}
-      </ul>
+      </div>
     {% endif %}
   {% empty %}
     <h3>No comment</h3>
+      <button type="button" class="btn btn-primary float-right" data-toggle="modal" data-target="#vcnModal">
+        Add new comment
+      </button>
   {% endfor %}
 
-  <form method="post" enctype="multipart/form-data">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Save</button>
-  </form>
+  <!-- Modal -->
+  <div class="modal fade" id="vcnModal" tabindex="-1" role="dialog" aria-labelledby="newCommentModal" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="newCommentModal">Add new comment</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            {% bootstrap_form form layout='inline' %}
+            {% bootstrap_button "Save" button_type="submit" button_class="btn-primary" %}
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+
+
+{% block javascript %}
+  <!--modal-->
+  <script>
+    $(document).ready(function(){
+      $('[data-toggle="popover"]').popover();
+    });
+  </script>
 {% endblock %}
