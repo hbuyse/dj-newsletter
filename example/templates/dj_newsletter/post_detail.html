@@ -15,10 +15,16 @@
 {% endblock %}
 
 {% block page_title_buttons %}
-  <div class="btn-group float-right" role="group" aria-label="Basic example">
-    <a class="btn btn-primary" href="{% url 'dj_newsletter:post-update' post.id %}">Update</a>
-    <a class="btn btn-danger" href="{% url 'dj_newsletter:post-delete' post.id %}">Delete</a>
-  </div>
+  {% if user.is_authenticated %}
+    <div class="btn-group float-right" role="group" aria-label="Basic example">
+      {% if perms.dj_newsletter.change_post %}
+        <a class="btn btn-primary" href="{% url 'dj_newsletter:post-update' post.id %}">Update</a>
+      {% endif %}
+      {% if perms.dj_newsletter.delete_post %}
+        <a class="btn btn-danger" href="{% url 'dj_newsletter:post-delete' post.id %}">Delete</a>
+      {% endif %}
+    </div>
+  {% endif %}
 {% endblock %}
 
 {% block content %}
@@ -29,17 +35,26 @@
   {% for comment in post.comment_set.all %}
     {% if forloop.first %}
       <h3 class="float-left">{{ post.comment_set.count }} comment{% if post.comment_set.count >= 2 %}s{% endif %}</h3>
-      <div class="btn-group float-right" role="group" aria-label="Basic example">
-        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#vcnModal">
-          Add new comment
-        </button>
-        <button type="button" class="btn btn-primary" data-container="body" data-toggle="popover" data-placement="bottom" data-content="To update your comment, you have to click on it. It will redirect you to the update/delete page">
-          Update comment
-        </button>
-        <button type="button" class="btn btn-primary" data-container="body" data-toggle="popover" data-placement="bottom" data-content="To delete your comment, you have to click on it. It will redirect you to the update page, then you can click on the deletion button">
-          Delete comment
-        </button>
-      </div>
+      {% if user.is_authenticated %}
+        <div class="btn-group float-right" role="group" aria-label="Basic example">
+
+          {% if perms.dj_newsletter.add_comment %}
+            <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#vcnModal">
+              Add new comment
+            </button>
+          {% endif %}
+          {% if perms.dj_newsletter.change_comment %}
+            <button type="button" class="btn btn-primary" data-container="body" data-toggle="popover" data-placement="bottom" data-content="To update your comment, you have to click on it. It will redirect you to the update/delete page">
+              Update comment
+            </button>
+          {% endif %}
+          {% if perms.dj_newsletter.delete_comment %}
+            <button type="button" class="btn btn-primary" data-container="body" data-toggle="popover" data-placement="bottom" data-content="To delete your comment, you have to click on it. It will redirect you to the update page, then you can click on the deletion button">
+              Delete comment
+            </button>
+          {% endif %}
+        </div>
+      {% endif %}
       <div class="list-group w-100 mb-2">
     {% endif %}
 
