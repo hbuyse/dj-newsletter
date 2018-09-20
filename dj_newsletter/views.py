@@ -56,8 +56,12 @@ class PostDetailView(FormMixin, DetailView):
             raise PermissionDenied
         elif not request.user.has_perm("dj_newsletter.add_comment"):
             raise PermissionDenied
-
-        return super().post(request, *args, **kwargs)
+        self.object = self.get_object()
+        form = self.get_form()
+        if form.is_valid():
+            return self.form_valid(form)
+        else:
+            return self.form_invalid(form)
 
     def form_valid(self, form):
         """Validate the form."""
