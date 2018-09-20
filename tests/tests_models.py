@@ -5,7 +5,6 @@
 
 from dj_newsletter.models import Post, Comment
 
-from django.contrib.auth.models import User
 from django.contrib.auth import get_user_model
 
 from django.test import TestCase
@@ -37,30 +36,23 @@ class TestPostModel(TestCase):
         """Test the verbose name in plural."""
         self.assertEqual(str(Post._meta.verbose_name_plural), "posts")
 
-    def test_empty_text_md(self):
+    def test_text_md(self):
         """Test the text_md function of post class."""
         s = Post.objects.create(title="My Title", author=self.user)
         self.assertEqual(len(s.text_md()), 0)
 
-        s = Post.objects.create(title="My Title", author=self.user, text="# Toto")
-        self.assertIn("<h1>", s.text_md())
-        self.assertIn("</h1>", s.text_md())
+        tests = (
+            ("# Toto", "<h1>", "</h1>"),
+            ("## Toto", "<h2>", "</h2>"),
+            ("Toto", "<p>", "</p>"),
+            ("*Toto*", "<em>", "</em>"),
+            ("**Toto**", "<strong>", "</strong>"),
+        )
 
-        s = Post.objects.create(title="My Title", author=self.user, text="## Toto")
-        self.assertIn("<h2>", s.text_md())
-        self.assertIn("</h2>", s.text_md())
-
-        s = Post.objects.create(title="My Title", author=self.user, text="Toto")
-        self.assertIn("<p>", s.text_md())
-        self.assertIn("</p>", s.text_md())
-
-        s = Post.objects.create(title="My Title", author=self.user, text="*Toto*")
-        self.assertIn("<em>", s.text_md())
-        self.assertIn("</em>", s.text_md())
-
-        s = Post.objects.create(title="My Title", author=self.user, text="**Toto**")
-        self.assertIn("<strong>", s.text_md())
-        self.assertIn("</strong>", s.text_md())
+        for test in tests:
+            p = Post.objects.create(title="My Title", author=self.user, text=test[0])
+            self.assertIn(test[1], p.text_md())
+            self.assertIn(test[2], p.text_md())
 
 
 class TestCommentModel(TestCase):
