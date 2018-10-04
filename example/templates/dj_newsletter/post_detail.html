@@ -36,38 +36,34 @@
     {% if forloop.first %}
       <h3 class="float-left">{{ post.comment_set.count }} comment{% if post.comment_set.count >= 2 %}s{% endif %}</h3>
       {% if user.is_authenticated %}
-        <div class="btn-group float-right" role="group" aria-label="Basic example">
-
-          {% if perms.dj_newsletter.add_comment %}
-            <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#vcnModal">
-              Add new comment
-            </button>
-          {% endif %}
-          {% if perms.dj_newsletter.change_comment %}
-            <button type="button" class="btn btn-primary" data-container="body" data-toggle="popover" data-placement="bottom" data-content="To update your comment, you have to click on it. It will redirect you to the update/delete page">
-              Update comment
-            </button>
-          {% endif %}
-          {% if perms.dj_newsletter.delete_comment %}
-            <button type="button" class="btn btn-primary" data-container="body" data-toggle="popover" data-placement="bottom" data-content="To delete your comment, you have to click on it. It will redirect you to the update page, then you can click on the deletion button">
-              Delete comment
-            </button>
-          {% endif %}
-        </div>
+        {% if perms.dj_newsletter.add_comment %}
+          <button type="button" class="btn btn-primary float-right" data-toggle="modal" data-target="#vcnModal">
+            New comment
+          </button>
+        {% endif %}
       {% endif %}
       <div class="list-group w-100 mb-2">
     {% endif %}
 
-    {% if user.is_authenticated and comment.author == user %}
-      <a href="{% url 'dj_newsletter:post-comment-update' comment.id %}" class="list-group-item list-group-item-action flex-column align-items-start">
-    {% else %}
-      <li class="list-group-item flex-column align-items-start">
-    {% endif %}
+    <li class="list-group-item flex-column align-items-start">
       <div class="d-flex justify-content-between">
-        <h5 class="mb-0">{{ comment.author.get_full_name }}</h5>
+        <h5>{{ comment.author.get_full_name }}</h5>
         <small>{{ comment.created|date:"d/m/Y H:i" }}</small>
       </div>
-      <p class="mb-1">{{ comment.text|linebreaks }}</p>
+      <div>
+      {{ comment.text|linebreaks }}
+
+    {% if comment.author == request.user %}
+      <div class="btn btn-group float-right" style="padding:0;">
+        <a class="btn btn-sm btn-primary" href="{% url 'dj_newsletter:post-comment-update' comment.id %}">
+          Update
+        </a>
+        <a class="btn btn-sm btn-danger" href="{% url 'dj_newsletter:post-comment-delete' comment.id %}">
+          Delete
+        </a>
+      </div>
+    {% endif %}
+      </div>
 
     {% if comment.author == request.user %}
       </a>

@@ -25,7 +25,7 @@
       <div class="list-group w-100 mb-2">
     {% endif %}
 
-    <a href="{% url 'dj_newsletter:post-detail' post.id %}" class="list-group-item list-group-item-action flex-column align-items-start">
+    <a href="{% url 'dj_newsletter:post-detail-date' post.created|date:"Y" post.created|date:"M" post.created|date:"d" post.pk %}" class="list-group-item list-group-item-action flex-column align-items-start">
       <div class="d-flex justify-content-between">
         <h4 class="mb-1">{{ post.title }}</h4>
         <small>{{ post.author.get_full_name }} - {{ post.created|date:"d/m/Y H:i" }}</small>

@@ -13,6 +13,7 @@ from django.views.generic import (
     UpdateView,
     ListView
 )
+from django.views.generic.dates import DateDetailView
 from django.views.generic.edit import FormMixin
 
 from .forms import (
@@ -37,6 +38,46 @@ class PostDetailView(FormMixin, DetailView):
 
     model = Post
     form_class = PostCommentForm
+
+    def get_success_url(self):
+        """."""
+        messages.success(self.request, "Comment successfully added")
+        return reverse('dj_newsletter:post-detail', kwargs={'pk': self.object.pk})
+
+    def get_context_data(self, **kwargs):
+        """Add post_id in request.session."""
+        context = super().get_context_data(**kwargs)
+        context['form'] = self.get_form()
+        self.request.session['post_pk'] = self.kwargs['pk']
+        return context
+
+    def post(self, request, *args, **kwargs):
+        """."""
+        if not request.user.is_authenticated:
+            raise PermissionDenied
+        elif not request.user.has_perm("dj_newsletter.add_comment"):
+            raise PermissionDenied
+        self.object = self.get_object()
+        form = self.get_form()
+        if form.is_valid():
+            return self.form_valid(form)
+        else:
+            return self.form_invalid(form)
+
+    def form_valid(self, form):
+        """Validate the form."""
+        form.instance.post = Post.objects.get(id=self.kwargs['pk'])
+        form.instance.author = self.request.user
+        form.save()
+        return super().form_valid(form)
+
+
+class PostDateDetailView(FormMixin, DateDetailView):
+    """Show the details of a post."""
+
+    model = Post
+    form_class = PostCommentForm
+    date_field = 'created'
 
     def get_success_url(self):
         """."""

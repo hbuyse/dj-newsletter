@@ -4,9 +4,10 @@
 
 
 from django.urls import path
+from django.views.generic.dates import DateDetailView
 
 from . import views
-
+from .models import Post
 
 app_name = 'dj_newsletter'
 urlpatterns = [
@@ -17,6 +18,10 @@ urlpatterns = [
     path("create",
          view=views.PostCreateView.as_view(),
          name='post-create',
+         ),
+    path("<int:year>/<str:month>/<int:day>/<int:pk>",
+         views.PostDateDetailView.as_view(),
+         name='post-detail-date',
          ),
     path("<int:pk>",
          view=views.PostDetailView.as_view(),
