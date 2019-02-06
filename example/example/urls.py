@@ -24,7 +24,7 @@ urlpatterns = [
     path('login', auth_views.login, name="login"),
     path('logout', auth_views.logout, name="logout"),
     path('admin/', admin.site.urls, name='admin'),
-    path('', include('dj_newsletter.urls', namespace='dj_newsletter')),
+    path('', include('newsletter.urls', namespace='newsletter')),
     path('markdownx/', include('markdownx.urls')),
 ]
 

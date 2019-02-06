@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% load bootstrap4 %}
+
+{% block path %}
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'newsletter:posts-list' %}">Home</a></li>
+      {% if 'create' in request.path %}
+        <li class="breadcrumb-item active" aria-current="page">Create post</a></li>
+      {% elif 'update' in request.path %}
+        <li class="breadcrumb-item active" aria-current="page">Update post '{{ post }}'</a></li>
+      {% endif %}
+    </ol>
+  </nav>
+{% endblock %}
+
+{% block page_title %}
+  {% if 'create' in request.path %}
+    Create post
+  {% elif 'update' in request.path %}
+    Update post '{{ post }}'
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {% bootstrap_form form %}
+    {{ form.media }}
+    {% bootstrap_button "Save" button_type="submit" button_class="btn-primary" %}
+  </form>
+{% endblock %}

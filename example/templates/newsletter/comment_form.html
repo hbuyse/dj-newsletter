@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% load bootstrap4 %}
+
+{% block path %}
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'newsletter:posts-list' %}">Home</a></li>
+      <li class="breadcrumb-item active" aria-current="page">Update comment for post '{{ comment.post }}'</a></li>
+    </ol>
+  </nav>
+{% endblock %}
+
+{% block page_title %}
+  Update comment for post '{{ comment.post }}'
+{% endblock %}
+
+{% block page_title_buttons %}
+  <div class="btn-group float-right" role="group" aria-label="Basic example">
+    <a class="btn btn-danger" href="{% url 'newsletter:post-comment-delete' comment.id %}">Delete</a>
+  </div>
+{% endblock %}
+
+{% block content %}
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {% bootstrap_form form %}
+    {% bootstrap_button "Save" button_type="submit" button_class="btn-primary" %}
+  </form>
+{% endblock %}

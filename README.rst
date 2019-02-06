@@ -31,7 +31,7 @@ Add it to your `INSTALLED_APPS`:
 
     INSTALLED_APPS = (
         ...
-        'dj_newsletter.apps.DjNewsletterConfig',
+        'newsletter.apps.DjNewsletterConfig',
         ...
     )
 
@@ -39,12 +39,12 @@ Add Django Newsletter's URL patterns:
 
 .. code-block:: python
 
-    from dj_newsletter import urls as dj_newsletter_urls
+    from newsletter import urls as newsletter_urls
 
 
     urlpatterns = [
         ...
-        url(r'^', include(dj_newsletter_urls)),
+        url(r'^', include(newsletter_urls)),
         ...
     ]
 

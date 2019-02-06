@@ -64,7 +64,7 @@ SECRET_KEY = "t#b^me3*h1z^8!%a4um8_*9!&)0m@+u^b#od3+63@azutx63d5"
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 # Application definition
 
@@ -79,7 +79,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    'dj_newsletter',
+    'newsletter',
 
     # if your app has other dependencies that need to be added to the site
     # they should be added here
