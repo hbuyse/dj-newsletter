@@ -69,6 +69,7 @@ class PostDateDetailView(FormMixin, DateDetailView):
     model = Post
     form_class = PostCommentForm
     date_field = 'created'
+    month_format = '%m'         # Override month format which is '%b' by default (%b: Jan, Feb, ...)
 
     def get_success_url(self):
         """."""
