@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 # coding=utf-8
 
-"""Tests the modification view of a post."""
+"""Tests the modification view of a self.post."""
 
 # Django
 from django.contrib.auth import get_user_model
@@ -10,13 +10,13 @@ from django.test import TestCase, override_settings, tag
 from django.urls import reverse
 
 # Current django project
-from newsletter.models import Post
+from newsletter.models import Comment, Post
 from newsletter.tests.utils import create_user
 
 
 @override_settings(LOGIN_URL="/toto/")
-@tag('post', 'view', 'update', 'anonymous')
-class TestPostUpdateViewAsAnonymous(TestCase):
+@tag('comment', 'view', 'delete', 'anonymous')
+class TestCommentDeleteViewAsAnonymous(TestCase):
     """Tests the modification view of a post as an anonymous user."""
 
     @classmethod
@@ -29,25 +29,26 @@ class TestPostUpdateViewAsAnonymous(TestCase):
             'title': 'Title'
         }
         cls.post = Post.objects.create(**d)
+        cls.comment = Comment.objects.create(post=cls.post, text="Hello World", author=cls.user)
 
     def test_get_redirected_to_login(self):
         """Get should be redirected to the login page."""
-        response = self.client.get(reverse('newsletter:post-update', kwargs={'pk': self.post.id}))
+        response = self.client.get(reverse('newsletter:post-comment-delete', kwargs={'pk': self.post.id}))
 
-        self.assertRedirects(response, "/toto/?next=/{}/update/".format(self.post.id), fetch_redirect_response=False)
+        self.assertRedirects(response, "/toto/?next=/comments/{}/delete/".format(self.comment.id), fetch_redirect_response=False)
 
     def test_post_redirected_to_login(self):
         """Post should be redirected to the login page."""
         d = {
             'title': 'My title'
         }
-        response = self.client.post(reverse('newsletter:post-update', kwargs={'pk': self.post.id}), d)
+        response = self.client.post(reverse('newsletter:post-comment-delete', kwargs={'pk': self.post.id}))
 
-        self.assertRedirects(response, "/toto/?next=/{}/update/".format(self.post.id), fetch_redirect_response=False)
+        self.assertRedirects(response, "/toto/?next=/comments/{}/delete/".format(self.comment.id), fetch_redirect_response=False)
 
 
-@tag('post', 'view', 'update', 'logged')
-class TestPostUpdateViewAsLogged(TestCase):
+@tag('comment', 'view', 'delete', 'logged')
+class TestCommentDeleteViewAsLogged(TestCase):
     """Tests."""
 
     @classmethod
@@ -60,41 +61,34 @@ class TestPostUpdateViewAsLogged(TestCase):
             'title': 'Title'
         }
         cls.post = Post.objects.create(**d)
+        cls.comment = Comment.objects.create(post=cls.post, text="Hello World", author=cls.user)
 
-    def test_posts_create_view_get_as_logged_with_wrong_permissions(self):
+    def test_get_as_logged_with_wrong_permissions(self):
         """Tests."""
         self.assertTrue(self.client.login(username=self.dict['username'], password=self.dict['password']))
 
-        response = self.client.get(reverse('newsletter:post-update', kwargs={'pk': self.post.id}))
+        response = self.client.get(reverse('newsletter:post-comment-delete', kwargs={'pk': self.post.id}))
         self.assertEqual(response.status_code, 403)
 
-    def test_posts_create_view_post_as_logged_with_wrong_permissions(self):
+    def test_post_as_logged_with_wrong_permissions(self):
         """Tests."""
-        d = {
-            'text': 'Text',
-            'title': 'My title'
-        }
         self.assertTrue(self.client.login(username=self.dict['username'], password=self.dict['password']))
 
-        response = self.client.post(reverse('newsletter:post-update', kwargs={'pk': self.post.id}), d)
+        response = self.client.post(reverse('newsletter:post-comment-delete', kwargs={'pk': self.post.id}))
         self.assertEqual(response.status_code, 403)
 
-    def test_posts_create_view_get_as_logged_with_right_permissions(self):
+    def test_get_as_logged_with_right_permissions(self):
         """Tests."""
         self.assertTrue(self.client.login(username=self.dict['username'], password=self.dict['password']))
-        self.assertFalse(self.user.has_perm('newsletter.change_post'))
+        self.assertFalse(self.user.has_perm('newsletter.delete_comment'))
 
-        self.user.user_permissions.add(Permission.objects.get(name='Can change post'))
-        response = self.client.get(reverse('newsletter:post-update', kwargs={'pk': self.post.id}))
+        self.user.user_permissions.add(Permission.objects.get(name='Can delete comment'))
+        response = self.client.get(reverse('newsletter:post-comment-delete', kwargs={'pk': self.post.id}))
         self.assertEqual(response.status_code, 200)
 
-    def test_posts_create_view_post_as_logged_with_right_permissions(self):
+    def test_post_as_logged_with_right_permissions(self):
         """Tests."""
-        perms = 'newsletter.change_post'
-        d = {
-            'text': 'Text',
-            'title': 'My title'
-        }
+        perms = 'newsletter.delete_comment'
         self.assertTrue(self.client.login(username=self.dict['username'], password=self.dict['password']))
         self.assertFalse(self.user.has_perm(perms))
         self.user.user_permissions.add(Permission.objects.get(codename=perms.split('.')[1]))
@@ -105,13 +99,13 @@ class TestPostUpdateViewAsLogged(TestCase):
         self.assertTrue(self.user.has_perm(perms))
 
         # Next test
-        response = self.client.post(reverse('newsletter:post-update', kwargs={'pk': self.post.id}), data=d)
+        response = self.client.post(reverse('newsletter:post-comment-delete', kwargs={'pk': self.post.id}))
         self.assertEqual(len(Post.objects.all()), 1)
         self.assertRedirects(response, "/{}/{}/{}/{}/".format(self.post.created.year, self.post.created.month, self.post.created.day, self.post.id), fetch_redirect_response=False)
 
 
-@tag('post', 'view', 'update', 'staff')
-class TestPostUpdateViewAsStaff(TestCase):
+@tag('comment', 'view', 'delete', 'staff')
+class TestCommentDeleteViewAsStaff(TestCase):
     """Tests."""
 
     @classmethod
@@ -124,41 +118,34 @@ class TestPostUpdateViewAsStaff(TestCase):
             'title': 'Title'
         }
         cls.post = Post.objects.create(**d)
+        cls.comment = Comment.objects.create(post=cls.post, text="Hello World", author=cls.user)
 
-    def test_posts_create_view_get_as_logged_with_wrong_permissions(self):
+    def test_get_as_logged_with_wrong_permissions(self):
         """Tests."""
         self.assertTrue(self.client.login(username=self.dict['username'], password=self.dict['password']))
 
-        response = self.client.get(reverse('newsletter:post-update', kwargs={'pk': self.post.id}))
+        response = self.client.get(reverse('newsletter:post-comment-delete', kwargs={'pk': self.post.id}))
         self.assertEqual(response.status_code, 403)
 
-    def test_posts_create_view_post_as_logged_with_wrong_permissions(self):
+    def test_post_as_logged_with_wrong_permissions(self):
         """Tests."""
-        d = {
-            'text': 'Text',
-            'title': 'My title'
-        }
         self.assertTrue(self.client.login(username=self.dict['username'], password=self.dict['password']))
 
-        response = self.client.post(reverse('newsletter:post-update', kwargs={'pk': self.post.id}), d)
+        response = self.client.post(reverse('newsletter:post-comment-delete', kwargs={'pk': self.post.id}))
         self.assertEqual(response.status_code, 403)
 
-    def test_posts_create_view_get_as_logged_with_right_permissions(self):
+    def test_get_as_logged_with_right_permissions(self):
         """Tests."""
         self.assertTrue(self.client.login(username=self.dict['username'], password=self.dict['password']))
-        self.assertFalse(self.user.has_perm('newsletter.change_post'))
+        self.assertFalse(self.user.has_perm('newsletter.delete_comment'))
 
-        self.user.user_permissions.add(Permission.objects.get(name='Can change post'))
-        response = self.client.get(reverse('newsletter:post-update', kwargs={'pk': self.post.id}))
+        self.user.user_permissions.add(Permission.objects.get(name='Can delete comment'))
+        response = self.client.get(reverse('newsletter:post-comment-delete', kwargs={'pk': self.post.id}))
         self.assertEqual(response.status_code, 200)
 
-    def test_posts_create_view_post_as_logged_with_right_permissions(self):
+    def test_post_as_logged_with_right_permissions(self):
         """Tests."""
-        perms = 'newsletter.change_post'
-        d = {
-            'text': 'Text',
-            'title': 'My title'
-        }
+        perms = 'newsletter.delete_comment'
         self.assertTrue(self.client.login(username=self.dict['username'], password=self.dict['password']))
         self.assertFalse(self.user.has_perm(perms))
         self.user.user_permissions.add(Permission.objects.get(codename=perms.split('.')[1]))
@@ -169,13 +156,13 @@ class TestPostUpdateViewAsStaff(TestCase):
         self.assertTrue(self.user.has_perm(perms))
 
         # Next test
-        response = self.client.post(reverse('newsletter:post-update', kwargs={'pk': self.post.id}), data=d)
+        response = self.client.post(reverse('newsletter:post-comment-delete', kwargs={'pk': self.post.id}))
         self.assertEqual(len(Post.objects.all()), 1)
         self.assertRedirects(response, "/{}/{}/{}/{}/".format(self.post.created.year, self.post.created.month, self.post.created.day, self.post.id), fetch_redirect_response=False)
 
 
-@tag('post', 'view', 'update', 'superuser')
-class TestPostUpdateViewAsSuperuser(TestCase):
+@tag('comment', 'view', 'delete', 'superuser')
+class TestCommentDeleteViewAsSuperuser(TestCase):
     """Tests the modification of a post as superuser.
     
     Unlike simple user or staff user, superuser already has the rights to do whatever he/she wants.
@@ -191,26 +178,23 @@ class TestPostUpdateViewAsSuperuser(TestCase):
             'title': 'Title'
         }
         cls.post = Post.objects.create(**d)
+        cls.comment = Comment.objects.create(post=cls.post, text="Hello World", author=cls.user)
 
-    def test_posts_create_view_get_as_logged_with_right_permissions(self):
+    def test_get_as_logged_with_right_permissions(self):
         """Tests."""
         self.assertTrue(self.client.login(username=self.dict['username'], password=self.dict['password']))
-        self.assertTrue(self.user.has_perm('newsletter.change_post'))
+        self.assertTrue(self.user.has_perm('newsletter.delete_comment'))
 
-        response = self.client.get(reverse('newsletter:post-update', kwargs={'pk': self.post.id}))
+        response = self.client.get(reverse('newsletter:post-comment-delete', kwargs={'pk': self.post.id}))
         self.assertEqual(response.status_code, 200)
 
-    def test_posts_create_view_post_as_logged_with_right_permissions(self):
+    def test_post_as_logged_with_right_permissions(self):
         """Tests."""
-        perms = 'newsletter.change_post'
-        d = {
-            'text': 'Text',
-            'title': 'My title'
-        }
+        perms = 'newsletter.delete_comment'
         self.assertTrue(self.client.login(username=self.dict['username'], password=self.dict['password']))
         self.assertTrue(self.user.has_perm(perms))
 
         # Next test
-        response = self.client.post(reverse('newsletter:post-update', kwargs={'pk': self.post.id}), data=d)
+        response = self.client.post(reverse('newsletter:post-comment-delete', kwargs={'pk': self.post.id}))
         self.assertEqual(len(Post.objects.all()), 1)
         self.assertRedirects(response, "/{}/{}/{}/{}/".format(self.post.created.year, self.post.created.month, self.post.created.day, self.post.id), fetch_redirect_response=False)

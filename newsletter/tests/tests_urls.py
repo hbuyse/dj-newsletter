@@ -21,11 +21,6 @@ class TestUrlsPost(TestCase):
         url = reverse('newsletter:post-create')
         self.assertEqual(url, '/create/')
 
-    def test_post_detail_url(self):
-        """Test the URL that gives the details of a post."""
-        url = reverse('newsletter:post-detail', kwargs={'pk': 1})
-        self.assertEqual(url, '/1/')
-
     def test_post_detail_date_url(self):
         """Test the URL that gives the details of a post."""
         url = reverse('newsletter:post-detail-date', kwargs={'year': 2019, 'month': 1, 'day': 23, 'pk': 1})

@@ -50,14 +50,14 @@ class TestPostCreateViewAsLogged(TestCase):
         """Set up for all the following tests."""
         cls.dict, cls.user = create_user()
 
-    def test_posts_create_view_get_as_logged_with_wrong_permissions(self):
+    def test_post_create_view_get_as_logged_with_wrong_permissions(self):
         """Tests."""
         self.assertTrue(self.client.login(username=self.dict['username'], password=self.dict['password']))
 
         response = self.client.get(reverse('newsletter:post-create'))
         self.assertEqual(response.status_code, 403)
 
-    def test_posts_create_view_post_as_logged_with_wrong_permissions(self):
+    def test_post_create_view_post_as_logged_with_wrong_permissions(self):
         """Tests."""
         d = {
             'text': 'Text',
@@ -68,7 +68,7 @@ class TestPostCreateViewAsLogged(TestCase):
         response = self.client.post(reverse('newsletter:post-create'), d)
         self.assertEqual(response.status_code, 403)
 
-    def test_posts_create_view_get_as_logged_with_right_permissions(self):
+    def test_post_create_view_get_as_logged_with_right_permissions(self):
         """Tests."""
         self.assertTrue(self.client.login(username=self.dict['username'], password=self.dict['password']))
         self.assertFalse(self.user.has_perm('newsletter.add_post'))
@@ -77,7 +77,7 @@ class TestPostCreateViewAsLogged(TestCase):
         response = self.client.get(reverse('newsletter:post-create'))
         self.assertEqual(response.status_code, 200)
 
-    def test_posts_create_view_post_as_logged_with_right_permissions(self):
+    def test_post_create_view_post_as_logged_with_right_permissions(self):
         """Tests."""
         perms = 'newsletter.add_post'
         d = {
@@ -96,7 +96,8 @@ class TestPostCreateViewAsLogged(TestCase):
         # Next test
         response = self.client.post(reverse('newsletter:post-create'), data=d)
         self.assertEqual(len(Post.objects.all()), 1)
-        self.assertRedirects(response, "/1/", fetch_redirect_response=False)
+        post = Post.objects.last()
+        self.assertRedirects(response, "/{}/{}/{}/{}/".format(post.created.year, post.created.month, post.created.day, post.id), fetch_redirect_response=False)
 
 
 @tag('post', 'view', 'create', 'staff')
@@ -108,14 +109,14 @@ class TestPostCreateViewAsStaff(TestCase):
         """Set up for all the following tests."""
         cls.dict, cls.user = create_user(staff=True)
 
-    def test_posts_create_view_get_as_logged_with_wrong_permissions(self):
+    def test_post_create_view_get_as_logged_with_wrong_permissions(self):
         """Tests."""
         self.assertTrue(self.client.login(username=self.dict['username'], password=self.dict['password']))
 
         response = self.client.get(reverse('newsletter:post-create'))
         self.assertEqual(response.status_code, 403)
 
-    def test_posts_create_view_post_as_logged_with_wrong_permissions(self):
+    def test_post_create_view_post_as_logged_with_wrong_permissions(self):
         """Tests."""
         d = {
             'text': 'Text',
@@ -126,7 +127,7 @@ class TestPostCreateViewAsStaff(TestCase):
         response = self.client.post(reverse('newsletter:post-create'), d)
         self.assertEqual(response.status_code, 403)
 
-    def test_posts_create_view_get_as_logged_with_right_permissions(self):
+    def test_post_create_view_get_as_logged_with_right_permissions(self):
         """Tests."""
         self.assertTrue(self.client.login(username=self.dict['username'], password=self.dict['password']))
         self.assertFalse(self.user.has_perm('newsletter.add_post'))
@@ -135,7 +136,7 @@ class TestPostCreateViewAsStaff(TestCase):
         response = self.client.get(reverse('newsletter:post-create'))
         self.assertEqual(response.status_code, 200)
 
-    def test_posts_create_view_post_as_logged_with_right_permissions(self):
+    def test_post_create_view_post_as_logged_with_right_permissions(self):
         """Tests."""
         perms = 'newsletter.add_post'
         d = {
@@ -154,7 +155,8 @@ class TestPostCreateViewAsStaff(TestCase):
         # Next test
         response = self.client.post(reverse('newsletter:post-create'), data=d)
         self.assertEqual(len(Post.objects.all()), 1)
-        self.assertRedirects(response, "/1/", fetch_redirect_response=False)
+        post = Post.objects.last()
+        self.assertRedirects(response, "/{}/{}/{}/{}/".format(post.created.year, post.created.month, post.created.day, post.id), fetch_redirect_response=False)
 
 
 @tag('post', 'view', 'create', 'superuser')
@@ -169,7 +171,7 @@ class TestPostCreateViewAsSuperuser(TestCase):
         """Set up for all the following tests."""
         cls.dict, cls.user = create_user(superuser=True)
 
-    def test_posts_create_view_get_as_logged_with_right_permissions(self):
+    def test_post_create_view_get_as_logged_with_right_permissions(self):
         """Tests."""
         self.assertTrue(self.client.login(username=self.dict['username'], password=self.dict['password']))
         self.assertTrue(self.user.has_perm('newsletter.add_post'))
@@ -177,7 +179,7 @@ class TestPostCreateViewAsSuperuser(TestCase):
         response = self.client.get(reverse('newsletter:post-create'))
         self.assertEqual(response.status_code, 200)
 
-    def test_posts_create_view_post_as_logged_with_right_permissions(self):
+    def test_post_create_view_post_as_logged_with_right_permissions(self):
         """Tests."""
         perms = 'newsletter.add_post'
         d = {
@@ -190,4 +192,5 @@ class TestPostCreateViewAsSuperuser(TestCase):
         # Next test
         response = self.client.post(reverse('newsletter:post-create'), data=d)
         self.assertEqual(len(Post.objects.all()), 1)
-        self.assertRedirects(response, "/1/", fetch_redirect_response=False)
+        post = Post.objects.last()
+        self.assertRedirects(response, "/{}/{}/{}/{}/".format(post.created.year, post.created.month, post.created.day, post.id), fetch_redirect_response=False)

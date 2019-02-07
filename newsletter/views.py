@@ -23,46 +23,6 @@ class PostListView(ListView):
     paginate_by = 10
 
 
-class PostDetailView(FormMixin, DetailView):
-    """Show the details of a post."""
-
-    model = Post
-    form_class = PostCommentForm
-
-    def get_success_url(self):
-        """."""
-        messages.success(self.request, "Comment successfully added")
-        return reverse('newsletter:post-detail', kwargs={'pk': self.object.pk})
-
-    def get_context_data(self, **kwargs):
-        """Add post_id in request.session."""
-        context = super().get_context_data(**kwargs)
-        context['form'] = self.get_form()
-        self.request.session['post_pk'] = self.kwargs['pk']
-        return context
-
-    def post(self, request, *args, **kwargs):
-        """."""
-        if not request.user.is_authenticated:
-            raise PermissionDenied
-        elif not request.user.has_perm("newsletter.add_comment"):
-            raise PermissionDenied
-
-        self.object = self.get_object()
-        form = self.get_form()
-        if form.is_valid():
-            return self.form_valid(form)
-        else:
-            return self.form_invalid(form)
-
-    def form_valid(self, form):
-        """Validate the form."""
-        form.instance.post = Post.objects.get(id=self.kwargs['pk'])
-        form.instance.author = self.request.user
-        form.save()
-        return super().form_valid(form)
-
-
 class PostDateDetailView(FormMixin, DateDetailView):
     """Show the details of a post."""
 
@@ -74,13 +34,18 @@ class PostDateDetailView(FormMixin, DateDetailView):
     def get_success_url(self):
         """."""
         messages.success(self.request, "Comment successfully added")
-        return reverse('newsletter:post-detail', kwargs={'pk': self.object.pk})
+        return reverse('newsletter:post-detail-date',
+                       kwargs={
+                          'year': self.object.created.year,
+                          'month': self.object.created.month,
+                          'day': self.object.created.day,
+                          'pk': self.object.pk
+                       })
 
     def get_context_data(self, **kwargs):
         """Add post_id in request.session."""
         context = super().get_context_data(**kwargs)
         context['form'] = self.get_form()
-        self.request.session['post_pk'] = self.kwargs['pk']
         return context
 
     def post(self, request, *args, **kwargs):
@@ -119,7 +84,13 @@ class PostCreateView(PermissionRequiredMixin, CreateView):
     def get_success_url(self):
         """Get the URL after the success."""
         messages.success(self.request, "Post '{}' added successfully".format(self.object.title))
-        return reverse('newsletter:post-detail', kwargs={'pk': self.object.id})
+        return reverse('newsletter:post-detail-date',
+                       kwargs={
+                          'year': self.object.created.year,
+                          'month': self.object.created.month,
+                          'day': self.object.created.day,
+                          'pk': self.object.id
+                       })
 
 
 class PostUpdateView(PermissionRequiredMixin, UpdateView):
@@ -132,7 +103,13 @@ class PostUpdateView(PermissionRequiredMixin, UpdateView):
     def get_success_url(self):
         """Get the URL after the success."""
         messages.success(self.request, "Post '{}' updated successfully".format(self.object.title))
-        return reverse('newsletter:post-detail', kwargs={'pk': self.object.id})
+        return reverse('newsletter:post-detail-date',
+                       kwargs={
+                          'year': self.object.created.year,
+                          'month': self.object.created.month,
+                          'day': self.object.created.day,
+                          'pk': self.object.id
+                       })
 
 
 class PostDeleteView(PermissionRequiredMixin, DeleteView):
@@ -156,13 +133,14 @@ class CommentUpdateView(PermissionRequiredMixin, UpdateView):
 
     def get_success_url(self):
         """Get the URL after the success."""
-        url = reverse('newsletter:post-list')
-
-        if 'post_pk' in self.request.session:
-            url = reverse('newsletter:post-detail', kwargs={'pk': self.request.session['post_pk']})
-
         messages.success(self.request, "Comment successfully updated")
-        return url
+        return reverse('newsletter:post-detail-date',
+                       kwargs={
+                          'year': self.object.created.year,
+                          'month': self.object.created.month,
+                          'day': self.object.created.day,
+                          'pk': self.object.post.id
+                       })
 
 
 class CommentDeleteView(PermissionRequiredMixin, DeleteView):
@@ -174,10 +152,11 @@ class CommentDeleteView(PermissionRequiredMixin, DeleteView):
 
     def get_success_url(self):
         """Get the URL after the success."""
-        url = reverse('newsletter:post-list')
-
-        if 'post_pk' in self.request.session:
-            url = reverse('newsletter:post-detail', kwargs={'pk': self.request.session['post_pk']})
-
         messages.success(self.request, "Comment successfully deleted")
-        return url
+        return reverse('newsletter:post-detail-date',
+                       kwargs={
+                          'year': self.object.created.year,
+                          'month': self.object.created.month,
+                          'day': self.object.created.day,
+                          'pk': self.object.post.id
+                       })
