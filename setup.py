@@ -29,7 +29,7 @@ VERSION = None
 # What packages are required for this module to be executed?
 REQUIRED = [
     "Django<2.2",
-    "django-markdownx==2.0.23"
+    "django-markdownx>=2.0.23"
 ]
 
 # What packages are optional?
