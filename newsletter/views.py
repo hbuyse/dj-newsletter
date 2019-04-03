@@ -11,6 +11,8 @@ from django.views.generic import CreateView, DeleteView, DetailView, ListView, U
 from django.views.generic.dates import DateDetailView
 from django.views.generic.edit import FormMixin
 
+from mult_mixins.mixins import StaffMixin
+
 # Current django project
 from newsletter.forms import PostCommentForm
 from newsletter.models import Comment, Post
@@ -69,12 +71,11 @@ class PostDateDetailView(FormMixin, DateDetailView):
         return super().form_valid(form)
 
 
-class PostCreateView(PermissionRequiredMixin, CreateView):
+class PostCreateView(LoginRequiredMixin, SuperuserRequiredMixin, CreateView):
     """Create a post."""
 
     model = Post
     fields = ['title', 'text']
-    permission_required = 'newsletter.add_post'
 
     def form_valid(self, form):
         """Validate the form."""
@@ -93,12 +94,11 @@ class PostCreateView(PermissionRequiredMixin, CreateView):
                        })
 
 
-class PostUpdateView(PermissionRequiredMixin, UpdateView):
+class PostUpdateView(LoginRequiredMixin, SuperuserRequiredMixin, UpdateView):
     """Update a post."""
 
     model = Post
     fields = ['title', 'text']
-    permission_required = 'newsletter.change_post'
 
     def get_success_url(self):
         """Get the URL after the success."""
@@ -112,11 +112,10 @@ class PostUpdateView(PermissionRequiredMixin, UpdateView):
                        })
 
 
-class PostDeleteView(PermissionRequiredMixin, DeleteView):
+class PostDeleteView(LoginRequiredMixin, SuperuserRequiredMixin, DeleteView):
     """View that allows the deletion of a post."""
 
     model = Post
-    permission_required = 'newsletter.delete_post'
 
     def get_success_url(self, **kwargs):
         """Get the URL after the success."""
@@ -124,12 +123,11 @@ class PostDeleteView(PermissionRequiredMixin, DeleteView):
         return reverse('newsletter:post-list')
 
 
-class CommentUpdateView(PermissionRequiredMixin, UpdateView):
+class CommentUpdateView(LoginRequiredMixin, SuperuserRequiredMixin, UpdateView):
     """View that allows the modification of a post."""
 
     model = Comment
     fields = ['text']
-    permission_required = 'newsletter.change_comment'
 
     def get_success_url(self):
         """Get the URL after the success."""
@@ -143,12 +141,11 @@ class CommentUpdateView(PermissionRequiredMixin, UpdateView):
                        })
 
 
-class CommentDeleteView(PermissionRequiredMixin, DeleteView):
+class CommentDeleteView(LoginRequiredMixin, SuperuserRequiredMixin, DeleteView):
     """View that allows the deletion of a post."""
 
     model = Comment
     fields = ['text']
-    permission_required = 'newsletter.delete_comment'
 
     def get_success_url(self):
         """Get the URL after the success."""

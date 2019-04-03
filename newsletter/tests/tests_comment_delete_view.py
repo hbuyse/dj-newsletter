@@ -11,7 +11,7 @@ from django.urls import reverse
 
 # Current django project
 from newsletter.models import Comment, Post
-from newsletter.tests.utils import create_user
+from newsletter.tests.helper import UserHelper
 
 
 @override_settings(LOGIN_URL="/toto/")
@@ -22,19 +22,18 @@ class TestCommentDeleteViewAsAnonymous(TestCase):
     @classmethod
     def setUpTestData(cls):
         """Set up for all the following tests."""
-        cls.dict, cls.user = create_user()
+        cls.author = UserHelper()
         d = {
-            'author': cls.user,
+            'author': cls.author,
             'text': 'Text',
             'title': 'Title'
         }
         cls.post = Post.objects.create(**d)
-        cls.comment = Comment.objects.create(post=cls.post, text="Hello World", author=cls.user)
+        cls.comment = Comment.objects.create(post=cls.post, text="Hello World", author=cls.author)
 
     def test_get_redirected_to_login(self):
         """Get should be redirected to the login page."""
         response = self.client.get(reverse('newsletter:post-comment-delete', kwargs={'pk': self.post.id}))
-
         self.assertRedirects(response, "/toto/?next=/comments/{}/delete/".format(self.comment.id), fetch_redirect_response=False)
 
     def test_post_redirected_to_login(self):
@@ -43,7 +42,6 @@ class TestCommentDeleteViewAsAnonymous(TestCase):
             'title': 'My title'
         }
         response = self.client.post(reverse('newsletter:post-comment-delete', kwargs={'pk': self.post.id}))
-
         self.assertRedirects(response, "/toto/?next=/comments/{}/delete/".format(self.comment.id), fetch_redirect_response=False)
 
 
@@ -54,7 +52,7 @@ class TestCommentDeleteViewAsLogged(TestCase):
     @classmethod
     def setUpTestData(cls):
         """Set up for all the following tests."""
-        cls.dict, cls.user = create_user()
+        cls.dict, cls.user = UserHelper()
         d = {
             'author': cls.user,
             'text': 'Text',
@@ -62,10 +60,12 @@ class TestCommentDeleteViewAsLogged(TestCase):
         }
         cls.post = Post.objects.create(**d)
         cls.comment = Comment.objects.create(post=cls.post, text="Hello World", author=cls.user)
+    
+    def setUp(self):
+        self.assertTrue(self.client.login(username=self.dict['username'], password=self.dict['password']))
 
     def test_get_as_logged_with_wrong_permissions(self):
         """Tests."""
-        self.assertTrue(self.client.login(username=self.dict['username'], password=self.dict['password']))
 
         response = self.client.get(reverse('newsletter:post-comment-delete', kwargs={'pk': self.post.id}))
         self.assertEqual(response.status_code, 403)
@@ -111,7 +111,7 @@ class TestCommentDeleteViewAsStaff(TestCase):
     @classmethod
     def setUpTestData(cls):
         """Set up for all the following tests."""
-        cls.dict, cls.user = create_user(staff=True)
+        cls.dict, cls.user = UserHelper(staff=True)
         d = {
             'author': cls.user,
             'text': 'Text',
@@ -171,7 +171,7 @@ class TestCommentDeleteViewAsSuperuser(TestCase):
     @classmethod
     def setUpTestData(cls):
         """Set up for all the following tests."""
-        cls.dict, cls.user = create_user(superuser=True)
+        cls.dict, cls.user = UserHelper(superuser=True)
         d = {
             'author': cls.user,
             'text': 'Text',

@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 # Package meta-data.
 NAME = 'dj-newsletter'
-DESCRIPTION = 'Django app to help a team to know who has to buy the breakfast.'
+DESCRIPTION = 'Simple newsletter Django app.'
 URL = 'https://github.com/hbuyse/dj-newsletter'
 EMAIL = 'henri.buyse@gmail.com'
 AUTHOR = 'Henri Buyse'
@@ -28,8 +28,14 @@ VERSION = None
 
 # What packages are required for this module to be executed?
 REQUIRED = [
-    "Django<2.2",
-    "django-markdownx>=2.0.23"
+    "Django>=2.0,<2.2",
+    "django-markdownx>=2.0.28",
+    "dj-mult-mixins==1.0.1",
+]
+
+# What packages are required for this module to be executed but that are not on PyPi?
+DEPENDENCY_LINKS = [
+    "git+https://github.com/hbuyse/dj-mult-mixins@v1.0.1#egg=dj_mult_mixins"
 ]
 
 # What packages are optional?
@@ -43,8 +49,11 @@ EXTRAS = {
         'isort',
         'coverage',
         'codecov',
+        'pylint',
     ]
 }
+
+TESTS_REQUIRE = []
 
 # The rest you shouldn't have to touch too much :)
 # ------------------------------------------------
@@ -129,7 +138,9 @@ setup(
     #     'console_scripts': ['mycli=mymodule:cli'],
     # },
     install_requires=REQUIRED,
+    dependency_links=DEPENDENCY_LINKS,
     extras_require=EXTRAS,
+    tests_require=TESTS_REQUIRE,
     include_package_data=True,
     license='MIT',
     classifiers=[
